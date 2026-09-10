@@ -59,7 +59,7 @@ fn hash_pw(salt: &str, pw: &str) -> String {
 }
 
 fn default_settings() -> Value {
-    json!({ "theme":"dark","accent":"#f26b3a","wallpaper":"aurora","font_scale":1.0,
+    json!({ "theme":"light","accent":"#f26b3a","wallpaper":"white","font_scale":1.0,
             "reduce_motion":false,"system_wide_ai":true,"privacy":"local_only","default_model":"local/reasoning" })
 }
 
@@ -361,6 +361,7 @@ fn sys_route(req: &Req) -> Option<(String, Value)> {
         }
         ("GET", "/api/apps") => Some(("200 OK".into(), sys::apps_installed())),
         ("GET", "/api/sys/updates") => Some(("200 OK".into(), sys::updates_check())),
+        ("GET", "/api/sys/os-update") => Some(("200 OK".into(), sys::os_update_check())),
         ("POST", "/api/sys/updates/apply") => {
             if bodyv(req)["confirm"].as_bool() != Some(true) {
                 return Some((

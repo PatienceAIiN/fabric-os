@@ -1103,3 +1103,39 @@ pub fn updates_apply() -> Result<Value, String> {
         ))
     }
 }
+
+// ---------------- Fabric OS self-update (GitHub releases) ----------------
+pub const OS_VERSION: &str = "0.2.0-fabric";
+pub fn os_update_check() -> Value {
+    let url = "https://api.github.com/repos/PatienceAIiN/fabric-os/releases/latest";
+    let out = Command::new("curl")
+        .args([
+            "-sS",
+            "--max-time",
+            "15",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            "User-Agent: FabricOS",
+            url,
+        ])
+        .output();
+    match out {
+        Ok(o) if o.status.success() => {
+            if let Ok(v) = serde_json::from_slice::<Value>(&o.stdout) {
+                let latest = v["tag_name"]
+                    .as_str()
+                    .unwrap_or("")
+                    .trim_start_matches('v')
+                    .to_string();
+                let newer = !latest.is_empty() && latest != OS_VERSION;
+                return json!({ "current": OS_VERSION, "latest": latest, "newer": newer,
+                    "url": v["html_url"], "notes": v["body"], "available": true });
+            }
+            json!({ "current": OS_VERSION, "available": false, "error": "bad response" })
+        }
+        _ => {
+            json!({ "current": OS_VERSION, "available": false, "error": "offline or repo unreachable" })
+        }
+    }
+}

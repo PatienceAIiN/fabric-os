@@ -76,6 +76,7 @@ input,select,textarea{user-select:text}
 .dockicon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.35rem;background:linear-gradient(160deg,#2c2440,#241d36);border:1px solid rgba(255,255,255,.05);transition:transform .16s,box-shadow .2s;position:relative}
 .dockicon:hover{transform:scale(1.13) translateX(3px);box-shadow:0 8px 22px rgba(0,0,0,.4)}.dockicon.run::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent)}
 .dockicon .tip{position:absolute;left:56px;white-space:nowrap;background:#000c;padding:3px 9px;border-radius:7px;font-size:.75rem;opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}.dockicon:hover .tip{opacity:1}
+#desktop .dock.bottom{left:50%;top:auto;bottom:10px;transform:translateX(-50%);flex-direction:row}
 .taskbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:40;display:flex;gap:6px;padding:5px;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:12px;max-width:80%;overflow:auto}
 .taskbar:empty{display:none}.tbtn{display:flex;gap:6px;align-items:center;padding:5px 11px;border-radius:8px;font-size:.78rem;background:rgba(255,255,255,.05);transition:background .2s;white-space:nowrap}.tbtn:hover{background:rgba(255,255,255,.12)}.tbtn.active{background:var(--accent);color:#20140c}
 
@@ -163,6 +164,44 @@ input,select,textarea{user-select:text}
 .wp{width:76px;height:48px;border-radius:9px;cursor:pointer;border:2px solid transparent}.wp.on{border-color:var(--accent)}
 .togg{width:42px;height:24px;border-radius:99px;background:var(--surface2);position:relative;transition:background .2s;cursor:pointer;flex:0 0 auto}.togg.on{background:var(--accent)}.togg::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}.togg.on::after{left:20px}
 .setrow{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}.setrow .lbl{flex:1}.setrow .lbl .d{font-size:.75rem;color:var(--muted)}
+
+/* ===== White system theme (default), flat — no gradients ===== */
+[data-theme=light]{--bg:#f3f4f8;--surface:#ffffff;--surface2:#eef0f5;--line:#e1e3ec;--text:#1a1d27;--muted:#6b7180;--accent2:#ff8a4a;}
+:root:not([data-theme=dark]){color-scheme:light}
+/* wallpapers incl. white default */
+#desktop.wp-white{background:#eef0f5}
+[data-theme=light] #desktop{background:#eef0f5}
+[data-theme=light] #splash{background:#eef0f5}
+[data-theme=light] .brand h1{color:#1a1d27}[data-theme=light] .brand p{color:#7a7f8c}
+[data-theme=light] #login,[data-theme=light] #setup{background:#e7eaf1}
+[data-theme=light] .card,[data-theme=light] .sucard{background:#fff}
+[data-theme=light] .topbar,[data-theme=light] .dock,[data-theme=light] .taskbar{background:rgba(255,255,255,.82)!important;border-color:var(--line)}
+[data-theme=light] #launcher{background:rgba(240,242,247,.85)!important}
+[data-theme=light] .topbar .act:hover,[data-theme=light] .tray .ti:hover,[data-theme=light] .litem:hover{background:rgba(0,0,0,.05)}
+[data-theme=light] .ctx button:hover{color:#fff}
+[data-theme=light] .winhead{background:#f6f7fb}
+/* FLATTEN all decorative gradients to flat white / neutral (both themes) */
+.mark{background:#fff!important;border:1px solid var(--line);box-shadow:0 6px 22px rgba(0,0,0,.08)}
+.mark svg *{stroke:var(--accent)!important}
+.mark svg [fill]:not([fill="none"]){fill:var(--accent)!important}
+.dockicon,.litem .li{background:var(--surface2)!important;border:1px solid var(--line)}
+.dockicon .ico,.litem .li .ico{color:var(--accent)}
+.dockicon.active{background:var(--accent)!important}.dockicon.active .ico{color:#fff}
+.litem .li .ico{color:var(--accent)}
+.btn,.mini{background:var(--accent)!important;color:#fff!important}
+.meter>i{background:var(--accent)!important}
+.togg.on{background:var(--accent)!important}
+.swatch{border-radius:8px}
+/* ensure inputs/labels readable on white */
+[data-theme=light] input,[data-theme=light] select,[data-theme=light] textarea,[data-theme=light] .edarea,[data-theme=light] [contenteditable]{background:#fff!important;color:var(--text)!important;border-color:var(--line)}
+[data-theme=light] .term{background:#f6f7fb!important}[data-theme=light] .termout{color:#2a2f3d!important}
+[data-theme=light] .litem .ln,[data-theme=light] .dockicon .tip{color:var(--text)}
+[data-theme=light] .dockicon .tip{background:#fff;border:1px solid var(--line);color:var(--text)}
+
+.agentdone{display:flex;align-items:center;gap:14px;margin-top:16px;padding:14px;border-radius:12px;background:color-mix(in srgb,var(--ok) 12%,transparent);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);animation:popIn .3s}
+.okcheck svg{width:44px;height:44px}.okcheck circle{stroke:var(--ok);stroke-width:2;stroke-dasharray:151;stroke-dashoffset:151;animation:dash .5s ease forwards}
+.okcheck path{stroke:var(--ok);stroke-width:3;stroke-linecap:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dash .4s .35s ease forwards}
+@keyframes dash{to{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -262,14 +301,14 @@ window.addEventListener("load",()=>{
     maybeSetup();},600);},auto?250:2000);
   setInterval(()=>{$("#clock").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});},1000);
 });
-async function doLogin(e){e.preventDefault();try{const j=await api("/api/login","POST",{username:$("#u").value,password:$("#p").value});TOKEN=j.token;$("#login").style.display="none";await enterDesktop();}catch(err){$("#lh").textContent="✗ "+err;$("#lh").style.color="var(--danger)";}}
+async function doLogin(e){e.preventDefault();try{const j=await api("/api/login","POST",{username:$("#u").value,password:$("#p").value});TOKEN=j.token;SET._me=j.user;$("#login").style.display="none";await enterDesktop();}catch(err){$("#lh").textContent="✗ "+err;$("#lh").style.color="var(--danger)";}}
 async function enterDesktop(){$("#desktop").style.display="flex";SET=await api("/api/settings").catch(()=>({}));applySettings();buildDock();$("#tbAct").innerHTML=ic("activities")+" Activities";$("#tbBell").innerHTML=ic("bell");$("#netTray").innerHTML=ic("network");$("#tbUser").innerHTML=ic("users");
   try{WS=(await api("/api/workspaces")).items;}catch(e){WS=["Workspace 1"];}$("#wsname").textContent=WS[CURWS]||"Workspace 1";
   refreshNotif();setInterval(refreshNotif,15000);app("files");}
 function logout(){api("/api/logout","POST").catch(()=>{});TOKEN=null;location.reload();}
 
 /* settings apply */
-function applySettings(){const r=document.documentElement;
+function applySettings(){const r=document.documentElement;if(typeof applyDock==="function")setTimeout(applyDock,0);
   r.setAttribute("data-theme",SET.theme==="light"?"light":"dark");
   r.setAttribute("data-rm",SET.reduce_motion?"true":"false");
   r.style.setProperty("--accent",SET.accent||"#f26b3a");
@@ -300,7 +339,18 @@ const APPS={
   clipboard:{name:"Clipboard",icon:"clipboard",w:460,h:440},
 };
 const DOCK=["files","terminal","writer","mail","software","assistant","processes","monitor","settings","trash"];
-function buildDock(){$("#dock").innerHTML=DOCK.map(id=>`<button class="dockicon" id="dk-${id}" onclick="app('${id}')">${ic(APPS[id].icon)}<span class="tip">${APPS[id].name}</span></button>`).join("");}
+function buildDock(){$("#dock").innerHTML=DOCK.map(id=>`<button class="dockicon" id="dk-${id}" onclick="app('${id}')" oncontextmenu="dockMenu(event,'${id}')">${ic(APPS[id].icon)}<span class="tip">${APPS[id].name}</span></button>`).join("");applyDock();}
+function applyDock(){const d=$("#dock");const pos=(SET&&SET.dock_pos)||"left";const sz=(SET&&SET.dock_size)||44;
+  d.classList.toggle("bottom",pos==="bottom");d.style.setProperty("--dksz",sz+"px");
+  d.querySelectorAll(".dockicon").forEach(x=>{x.style.width=sz+"px";x.style.height=sz+"px";});}
+function dockMenu(e,id){e.preventDefault();e.stopPropagation();ctxMenu(e.clientX,e.clientY-4,[
+  ["Open "+APPS[id].name,()=>app(id)],"sep",
+  ["Dock on the left",()=>saveSet({dock_pos:"left"}).then(applyDock)],
+  ["Dock on the bottom",()=>saveSet({dock_pos:"bottom"}).then(applyDock)],"sep",
+  ["Small icons",()=>saveSet({dock_size:36}).then(applyDock)],
+  ["Medium icons",()=>saveSet({dock_size:44}).then(applyDock)],
+  ["Large icons",()=>saveSet({dock_size:56}).then(applyDock)],"sep",
+  ["Dock settings",()=>app("settings","appearance")]]);}
 function app(id,arg){ // focus if open, else open
   const ex=Object.values(WIN).find(w=>w.app===id&&w.ws===CURWS);
   if(ex){if(ex.min)restoreWin(ex.id);focusWin(ex.id);if(arg&&ex.onarg)ex.onarg(arg);return;}
@@ -375,7 +425,7 @@ async function clearNotif(){await api("/api/notifications","DELETE");refreshNoti
 async function notify(title,body){try{await api("/api/notifications","POST",{title,body});refreshNotif();}catch(e){}}
 
 /* user menu + context + dialogs */
-function userMenu(e){ctxMenu(e.clientX-140,36,[["⚙ Settings",()=>app("settings")],["🗑 Trash",()=>app("trash")],"sep",["🔒 Lock",()=>location.reload()],["⏻ Sign out",logout]]);}
+function userMenu(e){e.stopPropagation();const me=(SET&&SET._me)||"admin";ctxMenu(e.clientX-160,34,[["👤 "+me,()=>app("settings","account")],["⚙ Settings",()=>app("settings")],["🖥 System info",()=>app("sysinfo")],"sep",["🔒 Lock",()=>location.reload()],["⏻ Sign out",logout]]);}
 function ctxMenu(x,y,items){closeCtx();const m=ce("div","ctx");m.style.left=x+"px";m.style.top=y+"px";
   items.forEach(it=>{if(it==="sep"){m.appendChild(ce("div","sep"));return;}const b=ce("button");if(it[2])b.className="dngtxt";b.textContent=it[0];b.onclick=()=>{closeCtx();it[1]();};m.appendChild(b);});
   $("#stage").appendChild(m);const r=m.getBoundingClientRect(),sr=$("#stage").getBoundingClientRect();if(r.right>sr.right)m.style.left=(x-r.width)+"px";}
@@ -515,6 +565,7 @@ APP_RENDER.assistant=(wb,o)=>{wb.innerHTML=`<div class="pad"><h3>Ask AI to do so
    <button class="chip" onclick="$('#ai${o.id}').value='show top ram';aiGo(${o.id})">Top RAM</button>
    <button class="chip" onclick="$('#ai${o.id}').value='show disk usage';aiGo(${o.id})">Disk usage</button>
    <button class="chip" onclick="$('#ai${o.id}').value='open terminal';aiGo(${o.id})">Open Terminal</button></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="togg ${AUTON?'on':''}" id="autotog${o.id}" onclick="AUTON=!AUTON;this.classList.toggle('on');toast(AUTON?'Autonomous mode ON — acts without asking':'Autonomous mode OFF — asks before serious actions')"></div><div style="font-size:.8rem"><b>Autonomous mode</b> <span class="d" style="color:var(--muted)">JARVIS — run serious actions without asking</span></div></div>
   <div class="aihdr" id="aih${o.id}" style="font-size:.78rem;color:var(--muted);margin-bottom:8px"><span style="color:var(--ok)">●</span> Local AI</div>
   <div id="ans${o.id}" style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:15px;min-height:120px;line-height:1.55;white-space:pre-wrap">Ask anything, or tell me to do something.</div></div>`;$("#ai"+o.id).focus();};
 async function aiGo(id){const q=$("#ai"+id).value.trim();if(!q)return;const ans=$("#ans"+id),h=$("#aih"+id);
@@ -522,6 +573,7 @@ async function aiGo(id){const q=$("#ai"+id).value.trim();if(!q)return;const ans=
   if(act){h.innerHTML=`<span style="color:var(--accent2)">⚙</span> Action`;ans.textContent="";
     if(act.danger&&!await dialog("Confirm action",act.confirm,{ok:"Do it",danger:true})){ans.textContent="Cancelled.";return;}
     try{const msg=await act.run();ans.textContent="✓ "+msg;notify("AI action",msg);}catch(e){ans.textContent="✗ "+e;}return;}
+  if(isTask(q)){return agentExecute(id,q);}
   h.innerHTML=`<span class="spinner"></span> Thinking locally…`;ans.textContent="";
   try{const j=await api("/api/ask","POST",{prompt:q});h.innerHTML=`<span style="color:var(--ok)">●</span> Local AI · ${j.backend}`;ans.textContent=j.text;}catch(e){h.textContent="Error";ans.textContent=String(e);}}
 function parseIntent(q){const s=q.toLowerCase();
@@ -626,7 +678,7 @@ const SETPAGE={
    <div class="sub2">Send feedback, a support request or a bug report to Patience AI (info@patienceai.in).</div>
    <div class="row"><div class="inp"><label>Type</label><select id="fbT"><option>Feedback</option><option>Support</option><option>Bug report</option></select></div><div class="inp" style="flex:1"><label>Subject</label><input id="fbSub" placeholder="Short summary"></div></div>
    <div class="inp" style="margin-bottom:10px"><label>Message</label><textarea id="fbM" style="min-height:90px;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none;resize:vertical;font-family:inherit"></textarea></div>
-   <button class="mini" onclick="sendFeedback()">Send to Patience AI</button> <span id="fbS" class="sub2" style="margin-left:8px"></span>`;
+   <button class="mini" onclick="feedbackForm()">Open feedback form…</button> <button class="mini ghost" onclick="sendFeedback()">Quick send</button> <span id="fbS" class="sub2" style="margin-left:8px"></span>`;
    api("/api/sys/info").then(x=>{const k=document.getElementById("ab_k"),c=document.getElementById("ab_c");if(k)k.textContent=x.kernel;if(c)c.textContent=x.cpu;});},
 };
 async function chUser(){const nu=$("#unm").value.trim();if(!nu)return;try{await api("/api/account/username","POST",{username:nu});toast("Username updated");}catch(e){toast(e);}}
@@ -718,7 +770,8 @@ async function swInstall(pkg,id){if(!await dialog("Install "+pkg,"Install the pa
   toast("Installing "+pkg+"…");try{await api("/api/apps/install","POST",{pkg,confirm:true});toast(pkg+" installed");notify("Installed",pkg);app("software");}catch(e){dialog("Install failed",String(e),{ok:"OK"});}}
 
 /* First-run setup wizard (OOBE) */
-let SU={step:0,accent:"#f26b3a",wallpaper:"aurora",theme:"dark",pass:""};
+let AUTON=false;
+let SU={step:0,accent:"#f26b3a",wallpaper:"white",theme:"light",pass:""};
 async function maybeSetup(){try{const st=await api("/api/os/setup-status");if(st.done){$("#login").style.display="grid";$("#u").focus();loadSwitcher();return;}}catch(e){$("#login").style.display="grid";return;}
   document.getElementById("setup").style.display="grid";suRender();}
 function suRender(){const steps=[suWelcome,suAccount,suLook,suLang,suAI,suFinish];document.getElementById("suBody").innerHTML=steps[SU.step]();
@@ -759,14 +812,97 @@ async function suComplete(){const b=document.getElementById("suDone");if(b){b.te
 
 
 async function checkUpdates(){const info=document.getElementById("upinfo"),list=document.getElementById("uplist");if(!info)return;info.textContent="Checking…";list.innerHTML="";
+  // Fabric OS update (from GitHub releases)
+  try{const os=await api("/api/sys/os-update");if(os.available){
+    list.innerHTML+=`<div class="setrow"><div class="lbl">Fabric OS ${os.newer?'<span class="tag t-warn">'+esc(os.latest)+' available</span>':'<span class="tag t-ok">latest ('+esc(os.current)+')</span>'}<div class="d">by Patience AI</div></div>${os.newer?`<button class="mini" onclick="window.open('${os.url}','_blank')">Download</button>`:''}</div>`;}}catch(e){}
+  // system package updates
   try{const j=await api("/api/sys/updates");document.getElementById("ab_pm").textContent=j.mgr;
-    if(!j.count){info.textContent="Your system is up to date ✓";return;}
-    info.textContent=j.count+" update(s) available";
-    list.innerHTML=`<div class="setrow"><div class="lbl">${j.updates.slice(0,8).map(u=>esc(u.pkg)).join(", ")}${j.count>8?" +"+(j.count-8)+" more":""}</div><button class="mini" onclick="applyUpdates()">Update all</button></div>`;
+    if(!j.count){info.textContent="System packages up to date ✓";return;}
+    info.textContent=j.count+" package update(s) available";
+    list.innerHTML+=`<div class="setrow"><div class="lbl">${j.updates.slice(0,8).map(u=>esc(u.pkg)).join(", ")}${j.count>8?" +"+(j.count-8)+" more":""}</div><button class="mini" onclick="applyUpdates()">Update all</button></div>`;
   }catch(e){info.textContent=String(e);}}
 async function applyUpdates(){if(!await dialog("Install updates","Download and install all available updates? Needs system privileges.",{ok:"Update",danger:true}))return;toast("Updating…");try{await api("/api/sys/updates/apply","POST",{confirm:true});toast("Updated");checkUpdates();}catch(e){dialog("Update failed",String(e),{ok:"OK"});}}
 async function sendFeedback(){const t=$("#fbT").value,sub=$("#fbSub").value||t,msg=$("#fbM").value;if(!msg.trim())return toast("Write a message");const st=$("#fbS");st.textContent="Sending…";
   try{const r=await api("/api/feedback","POST",{type:t,subject:sub,message:msg});st.innerHTML=r.sent?'<span class="tag t-ok">sent to Patience AI</span>':'<span class="tag t-warn">'+esc(r.note||"saved")+'</span>';$("#fbM").value="";}catch(e){st.innerHTML='<span class="tag t-bad">'+esc(e)+'</span>';}}
+
+
+function feedbackForm(){const m=$("#modal");m.style.display="grid";
+  m.innerHTML=`<div class="dlg" style="width:440px"><h4>Feedback &amp; support</h4><p style="margin-bottom:12px">Send to Patience AI (info@patienceai.in).</p>
+   <div class="row"><div class="inp"><label>Type</label><select id="ffT"><option>Feedback</option><option>Support</option><option>Bug report</option><option>Feature request</option></select></div>
+   <div class="inp" style="flex:1"><label>Your name / email</label><input id="ffN" placeholder="optional"></div></div>
+   <div class="inp" style="margin-bottom:10px"><label>Subject</label><input id="ffSub" placeholder="Short summary"></div>
+   <div class="inp" style="margin-bottom:12px"><label>Message</label><textarea id="ffM" style="min-height:110px;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none;resize:vertical;font-family:inherit"></textarea></div>
+   <div class="btns"><button class="mini ghost" onclick="$('#modal').style.display='none'">Cancel</button><button class="mini" id="ffSend" onclick="ffSubmit()">Send</button></div></div>`;}
+async function ffSubmit(){const b=$("#ffSend");b.textContent="Sending…";b.disabled=true;
+  try{const r=await api("/api/feedback","POST",{type:$("#ffT").value,subject:($("#ffSub").value||$("#ffT").value),message:$("#ffM").value,detail:"from: "+$("#ffN").value});
+    $("#modal").innerHTML=`<div class="dlg"><h4>${r.sent?"✓ Sent to Patience AI":"Saved"}</h4><p>${r.sent?"Thanks for your feedback!":esc(r.note||"Saved locally.")}</p><div class="btns"><button class="mini" onclick="$('#modal').style.display='none'">Close</button></div></div>`;
+  }catch(e){b.textContent="Send";b.disabled=false;toast(e);}}
+
+
+/* ===== Autonomous agent: plans multi-step OS tasks, then executes real tools ===== */
+function isTask(q){return /\b(create|make|new folder|organi[sz]e|move|delete|remove|trash|clean\s?up|find|search|set ?up|build|rename|open|launch|install|download|arrange)\b/i.test(q);}
+const AGENT_TOOLS={
+  mkdir:a=>api("/api/fs/mkdir","POST",{path:a.path}),
+  write:a=>api("/api/fs/write","POST",{path:a.path,content:a.content||""}),
+  move:a=>api("/api/fs/move","POST",{path:a.path,to:a.to}),
+  trash:a=>api("/api/fs/trash","POST",{path:a.path}),
+  search:async a=>{const j=await api("/api/fs/search","POST",{path:a.path||"/",q:a.q||a.query||""});notify("Search","found "+j.items.length+" for '"+(a.q||a.query)+"'");return j;},
+  list:a=>api("/api/fs/list","POST",{path:a.path||"/"}),
+  open_files:a=>{app("files",a.path||"/");return Promise.resolve({ok:true});},
+  launch:a=>api("/api/apps/launch","POST",{exec:a.exec}),
+  notify:a=>{notify("Assistant",a.text||a.message||"");return Promise.resolve({ok:true});},
+};
+const AGENT_DANGER=new Set(["trash","move","launch"]);
+function cap(w){return w.charAt(0).toUpperCase()+w.slice(1);}
+function extractJSON(t){const i=t.indexOf('[');const j=t.lastIndexOf(']');if(i<0||j<i)return null;try{const a=JSON.parse(t.slice(i,j+1));return Array.isArray(a)?a:null;}catch(e){return null;}}
+async function llmPlan(q){
+  const prompt=`You are Fabric OS's task planner. Convert the request into a JSON array of steps. Use ONLY these tools: mkdir{path}, write{path,content}, move{path,to}, trash{path}, search{path,q}, open_files{path}, notify{text}. Paths are workspace-relative and start with "/". Respond with ONLY the JSON array, no prose. Request: "${q}"`;
+  try{const j=await api("/api/ask","POST",{prompt});const plan=extractJSON(j.text)||[];return plan.filter(p=>p&&AGENT_TOOLS[p.tool]);}catch(e){return [];}}
+async function agentPlan(q){
+  const s=q.toLowerCase();
+  if(/organi[sz]e|arrange|clean ?up/.test(s)){
+    const om=s.match(/(?:organi[sz]e|arrange|clean ?up)\s+(?:my\s+)?([a-z]+)/);
+    const folder="/"+cap(om?om[1]:"downloads");
+    const dir=await api("/api/fs/list","POST",{path:folder}).catch(()=>({items:[]}));
+    const cat=n=>{const e=(n.split(".").pop()||"").toLowerCase();if(["png","jpg","jpeg","gif","webp","svg"].includes(e))return"Images";if(["pdf","txt","doc","docx","md","odt"].includes(e))return"Documents";if(["mp3","wav","flac"].includes(e))return"Music";if(["mp4","mkv","webm"].includes(e))return"Videos";if(["zip","tar","gz","xz","7z"].includes(e))return"Archives";return"Other";};
+    const plan=[];const seen=new Set();
+    (dir.items||[]).filter(it=>!it.dir).forEach(it=>{const c=cat(it.name);if(!seen.has(c)){seen.add(c);plan.push({tool:"mkdir",args:{path:folder+"/"+c},why:"folder for "+c});}plan.push({tool:"move",args:{path:it.path,to:folder+"/"+c},why:"move "+it.name});});
+    if(plan.length){plan.push({tool:"open_files",args:{path:folder},why:"show result"});return plan;}
+  }
+  const cm=q.match(/(?:create|make|new)\s+(?:a\s+)?(?:folder|project|directory)\s+(?:called\s+|named\s+)?(.+)/i);
+  if(cm){const name=cm[1].trim().replace(/[^\w \-]/g,"")||"New Folder";const base="/Documents/"+name;
+    if(/project/i.test(q))return [{tool:"mkdir",args:{path:base},why:"project root"},{tool:"mkdir",args:{path:base+"/src"},why:"source"},{tool:"mkdir",args:{path:base+"/docs"},why:"docs"},{tool:"write",args:{path:base+"/README.md",content:"# "+name+"\n\nCreated by the Fabric OS assistant.\n"},why:"README"},{tool:"open_files",args:{path:base},why:"open"}];
+    return [{tool:"mkdir",args:{path:base},why:"create folder"},{tool:"open_files",args:{path:base},why:"open"}];}
+  const fm=q.match(/(?:find|search)\s+(?:for\s+|all\s+)?(.+)/i);
+  if(fm){return [{tool:"search",args:{path:"/",q:fm[1].trim().replace(/^\*\.?/,"")},why:"search workspace"}];}
+  return await llmPlan(q);
+}
+async function agentExecute(id,q){
+  const ans=$("#ans"+id),h=$("#aih"+id);h.innerHTML=`<span class="spinner"></span> Planning…`;ans.textContent="";
+  let plan=[];try{plan=await agentPlan(q);}catch(e){}
+  if(!plan.length){h.innerHTML=`<span style="color:var(--ok)">●</span> Local AI`;ans.textContent="I couldn't break that into steps. Try: “organize my downloads”, “create a project called Notes”, or “find report”.";return;}
+  h.innerHTML=`<span style="color:var(--accent2)">⚙</span> Plan · ${plan.length} step(s) — approve to run`;
+  WIN[id]._plan=plan;
+  ans.innerHTML=plan.map((p,i)=>`<div class="setrow" style="padding:6px 0"><div class="lbl"><b>${i+1}. ${esc(p.tool)}</b> <span class="code">${esc(JSON.stringify(p.args))}</span>${p.why?`<div class="d">${esc(p.why)}</div>`:""}</div><span id="ps${id}_${i}" class="tag t-mut">queued</span></div>`).join("")
+   +`<div style="margin-top:12px"><button class="mini" id="agentRunBtn${id}" onclick="agentGo(${id})">Approve & run</button> <button class="chip" onclick="APP_RENDER.assistant($('#wb${id}'),WIN[${id}])">Cancel</button></div>`;
+}
+async function agentGo(id){const plan=WIN[id]._plan||[];let ok=0,skip=0;const log=[];
+  document.getElementById("agentRunBtn"+id)?.setAttribute("disabled","");
+  for(let i=0;i<plan.length;i++){const st=$("#ps"+id+"_"+i);if(!st)break;const p=plan[i];
+    // serious/dangerous actions ask permission unless Autonomous mode is ON
+    if(AGENT_DANGER.has(p.tool)&&!AUTON){st.className="tag t-warn";st.textContent="awaiting approval";
+      const okc=await dialog("Permission needed","Step "+(i+1)+": "+p.tool+" "+JSON.stringify(p.args)+"\n\nApprove this action? (Enable Autonomous mode to skip prompts.)",{ok:"Approve",danger:true});
+      if(!okc){st.className="tag t-mut";st.textContent="skipped";log.push("• skipped "+p.tool+" "+JSON.stringify(p.args));skip++;continue;}}
+    st.className="tag t-warn";st.textContent="running";
+    try{await AGENT_TOOLS[p.tool](p.args||{});st.className="tag t-ok";st.textContent="done";ok++;log.push("✓ "+p.tool+" "+JSON.stringify(p.args));}
+    catch(e){st.className="tag t-bad";st.textContent=String(e).slice(0,26);log.push("✗ "+p.tool+": "+e);}
+  }
+  const ans=$("#ans"+id);
+  ans.innerHTML+=`<div class="agentdone"><div class="okcheck"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-16"/></svg></div><div><b>Task complete</b><div class="d" style="color:var(--muted)">${ok} done${skip?", "+skip+" skipped":""}, ${plan.length-ok-skip} failed</div></div></div>
+   <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--accent2)">View log</summary><pre class="code" style="white-space:pre-wrap;margin-top:8px">${esc(log.join("\n"))}</pre></details>`;
+  $("#aih"+id).innerHTML=`<span style="color:var(--ok)">✓</span> Agent finished`;
+  notify("Assistant","Task complete: "+ok+"/"+plan.length+" steps");
+}
 
 </script>
 </body>
