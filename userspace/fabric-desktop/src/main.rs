@@ -355,6 +355,20 @@ fn sys_route(req: &Req) -> Option<(String, Value)> {
         ("GET", "/api/sys/users") => Some(("200 OK".into(), sys::users())),
         ("GET", "/api/sys/storage") => Some(("200 OK".into(), sys::storage())),
         ("GET", "/api/sys/network") => Some(("200 OK".into(), sys::network())),
+        ("POST", "/api/agent/plan") => {
+            let v = bodyv(req);
+            Some((
+                "200 OK".into(),
+                json!({ "steps": sys::agent_plan(sv(&v,"goal")) }),
+            ))
+        }
+        ("POST", "/api/agent/run") => {
+            let v = bodyv(req);
+            Some((
+                "200 OK".into(),
+                sys::agent_run(sv(&v, "goal"), v["autonomous"].as_bool().unwrap_or(false)),
+            ))
+        }
         ("POST", "/api/exec") => {
             let v = bodyv(req);
             Some(("200 OK".into(), sys::exec(sv(&v, "cmd"), sv(&v, "cwd"))))

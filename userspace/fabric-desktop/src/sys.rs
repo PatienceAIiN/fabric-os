@@ -1139,3 +1139,183 @@ pub fn os_update_check() -> Value {
         }
     }
 }
+
+// ---------------- Autonomous agent (server-side: plan -> execute) ----------------
+fn cap_first(w: &str) -> String {
+    let mut c = w.chars();
+    match c.next() {
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        None => String::new(),
+    }
+}
+fn categorize(name: &str) -> &'static str {
+    let e = name
+        .rsplit_once('.')
+        .map(|(_, e)| e.to_lowercase())
+        .unwrap_or_default();
+    match e.as_str() {
+        "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "bmp" => "Images",
+        "pdf" | "txt" | "doc" | "docx" | "md" | "odt" | "rtf" => "Documents",
+        "mp3" | "wav" | "flac" | "ogg" | "m4a" => "Music",
+        "mp4" | "mkv" | "webm" | "avi" | "mov" => "Videos",
+        "zip" | "tar" | "gz" | "xz" | "7z" | "bz2" => "Archives",
+        _ => "Other",
+    }
+}
+/// Build a plan (list of {tool,args,why}) for a natural-language goal.
+pub fn agent_plan(goal: &str) -> Vec<Value> {
+    let g = goal.to_lowercase();
+    let mut plan = Vec::new();
+    // organize / clean up / arrange <folder>
+    if g.contains("organi") || g.contains("clean") || g.contains("arrange") || g.contains("sort") {
+        let folder = [
+            "downloads",
+            "documents",
+            "pictures",
+            "music",
+            "videos",
+            "desktop",
+        ]
+        .iter()
+        .find(|f| g.contains(*f))
+        .map(|f| format!("/{}", cap_first(f)))
+        .unwrap_or_else(|| "/Downloads".into());
+        if let Ok(listing) = fs_list(&folder) {
+            let mut seen = std::collections::HashSet::new();
+            for it in listing["items"].as_array().cloned().unwrap_or_default() {
+                if it["dir"].as_bool().unwrap_or(false) {
+                    continue;
+                }
+                let name = it["name"].as_str().unwrap_or("");
+                let c = categorize(name);
+                if seen.insert(c) {
+                    plan.push(json!({"tool":"mkdir","args":{"path":format!("{folder}/{c}")},"why":format!("folder for {c}")}));
+                }
+                plan.push(json!({"tool":"move","args":{"path":it["path"],"to":format!("{folder}/{c}")},"why":format!("move {name}")}));
+            }
+            if !plan.is_empty() {
+                return plan;
+            }
+        }
+    }
+    // create/make folder or project <name>
+    if let Some(pos) = ["create", "make", "new "].iter().find_map(|k| g.find(k)) {
+        let _ = pos;
+        // extract name after folder/project
+        let after = g.rsplit(|c| c == ' ').collect::<Vec<_>>();
+        let _ = after;
+        if let Some(idx) = g
+            .find("folder")
+            .or_else(|| g.find("project"))
+            .or_else(|| g.find("directory"))
+        {
+            let raw = &goal[idx..];
+            let name: String = raw
+                .splitn(2, ' ')
+                .nth(1)
+                .unwrap_or("New Folder")
+                .replace("called ", "")
+                .replace("named ", "")
+                .chars()
+                .filter(|c| c.is_alphanumeric() || *c == ' ' || *c == '-' || *c == '_')
+                .collect::<String>()
+                .trim()
+                .to_string();
+            let name = if name.is_empty() {
+                "New Folder".into()
+            } else {
+                name
+            };
+            let base = format!("/Documents/{name}");
+            if g.contains("project") {
+                plan.push(json!({"tool":"mkdir","args":{"path":base},"why":"project root"}));
+                plan.push(json!({"tool":"mkdir","args":{"path":format!("{base}/src")},"why":"source dir"}));
+                plan.push(
+                    json!({"tool":"mkdir","args":{"path":format!("{base}/docs")},"why":"docs dir"}),
+                );
+                plan.push(json!({"tool":"write","args":{"path":format!("{base}/README.md"),"content":format!("# {name}\n\nCreated autonomously by the Fabric OS agent.\n")},"why":"README"}));
+            } else {
+                plan.push(json!({"tool":"mkdir","args":{"path":base},"why":"create folder"}));
+            }
+            return plan;
+        }
+    }
+    // write a note / file named X saying Y
+    if g.contains("note") || g.contains("write") {
+        let content = goal
+            .splitn(2, "saying")
+            .nth(1)
+            .or_else(|| goal.splitn(2, "with").nth(1))
+            .unwrap_or("Hello from Fabric OS.")
+            .trim()
+            .to_string();
+        plan.push(json!({"tool":"write","args":{"path":"/Documents/note.txt","content":content},"why":"write note"}));
+        return plan;
+    }
+    // find / search X
+    if let Some(k) = ["find ", "search "].iter().find(|k| g.contains(**k)) {
+        let q = goal
+            .splitn(2, k.trim())
+            .nth(1)
+            .unwrap_or("")
+            .trim()
+            .trim_start_matches("for ")
+            .trim_start_matches("all ")
+            .trim_start_matches("*.")
+            .to_string();
+        plan.push(json!({"tool":"search","args":{"path":"/","q":q},"why":"search workspace"}));
+        return plan;
+    }
+    plan
+}
+fn agent_exec_tool(tool: &str, args: &Value) -> Result<Value, String> {
+    match tool {
+        "mkdir" => fs_mkdir(args["path"].as_str().unwrap_or("")),
+        "write" => fs_write(
+            args["path"].as_str().unwrap_or(""),
+            args["content"].as_str().unwrap_or(""),
+        ),
+        "move" => fs_move(
+            args["path"].as_str().unwrap_or(""),
+            args["to"].as_str().unwrap_or(""),
+        ),
+        "trash" => fs_trash(args["path"].as_str().unwrap_or("")),
+        "search" => fs_search("/", args["q"].as_str().unwrap_or("")),
+        "list" => fs_list(args["path"].as_str().unwrap_or("/")),
+        "notify" => Ok(json!({"ok":true})),
+        _ => Err(format!("unknown tool {tool}")),
+    }
+}
+/// Plan + autonomously execute. `serious` tools (move/trash) run only if
+/// `autonomous`, else they are returned as awaiting-approval.
+pub fn agent_run(goal: &str, autonomous: bool) -> Value {
+    let plan = agent_plan(goal);
+    if plan.is_empty() {
+        return json!({ "steps": [], "done": 0, "skipped": 0, "failed": 0, "total": 0,
+            "message": "No actionable plan. Try: 'organize my downloads', 'create a project called X', 'find <name>'." });
+    }
+    let serious = ["move", "trash", "launch"];
+    let (mut done, mut skipped, mut failed) = (0, 0, 0);
+    let mut steps = Vec::new();
+    for st in &plan {
+        let tool = st["tool"].as_str().unwrap_or("");
+        let args = &st["args"];
+        if serious.contains(&tool) && !autonomous {
+            steps.push(json!({ "tool": tool, "args": args, "why": st["why"], "status": "awaiting-approval" }));
+            skipped += 1;
+            continue;
+        }
+        match agent_exec_tool(tool, args) {
+            Ok(r) => {
+                done += 1;
+                steps.push(json!({ "tool": tool, "args": args, "why": st["why"], "status": "done", "result": r }));
+            }
+            Err(e) => {
+                failed += 1;
+                steps.push(json!({ "tool": tool, "args": args, "why": st["why"], "status": "failed", "error": e }));
+            }
+        }
+    }
+    json!({ "steps": steps, "done": done, "skipped": skipped, "failed": failed, "total": plan.len(),
+        "message": format!("Task complete: {done} done, {skipped} awaiting approval, {failed} failed") })
+}

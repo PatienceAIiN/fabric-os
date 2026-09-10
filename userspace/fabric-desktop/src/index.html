@@ -859,6 +859,7 @@ async function llmPlan(q){
   const prompt=`You are Fabric OS's task planner. Convert the request into a JSON array of steps. Use ONLY these tools: mkdir{path}, write{path,content}, move{path,to}, trash{path}, search{path,q}, open_files{path}, notify{text}. Paths are workspace-relative and start with "/". Respond with ONLY the JSON array, no prose. Request: "${q}"`;
   try{const j=await api("/api/ask","POST",{prompt});const plan=extractJSON(j.text)||[];return plan.filter(p=>p&&AGENT_TOOLS[p.tool]);}catch(e){return [];}}
 async function agentPlan(q){
+  try{const j=await api("/api/agent/plan","POST",{goal:q});if(j.steps&&j.steps.length)return j.steps.map(x=>({tool:x.tool,args:x.args,why:x.why}));}catch(e){}
   const s=q.toLowerCase();
   if(/organi[sz]e|arrange|clean ?up/.test(s)){
     const om=s.match(/(?:organi[sz]e|arrange|clean ?up)\s+(?:my\s+)?([a-z]+)/);
