@@ -1254,7 +1254,7 @@ pub fn agent_plan(goal: &str) -> Vec<Value> {
     }
     // run / execute a shell command (real)
     if g.starts_with("run ") || g.starts_with("execute ") || g.contains("command:") {
-        let cmd = goal.splitn(2, ' ').nth(1).unwrap_or("").to_string();
+        let cmd = goal.split_once(' ').map(|x| x.1).unwrap_or("").to_string();
         let cmd = cmd.trim_start_matches("command:").trim().to_string();
         if !cmd.is_empty() {
             plan.push(json!({"tool":"exec","args":{"cmd":cmd,"cwd":"/"},"why":"run command"}));
