@@ -66,18 +66,19 @@ input,select,textarea{user-select:text}
 
 /* desktop chrome */
 #desktop{position:fixed;inset:0;display:none;flex-direction:column}
-.topbar{height:34px;display:flex;align-items:center;gap:12px;padding:0 12px;z-index:60;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.05);font-size:.82rem}
+.topbar{height:34px;display:flex;align-items:center;gap:12px;padding:0 12px;z-index:5000;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.05);font-size:.82rem}
 .topbar .act{padding:3px 11px;border-radius:8px;transition:background .2s;display:flex;gap:6px;align-items:center}.topbar .act:hover{background:rgba(255,255,255,.09)}
 .topbar .sp{flex:1}.tray{display:flex;align-items:center;gap:4px}
 .tray .ti{padding:4px 8px;border-radius:8px;transition:background .2s;position:relative}.tray .ti:hover{background:rgba(255,255,255,.09)}
 .badge{position:absolute;top:1px;right:2px;min-width:15px;height:15px;font-size:.6rem;border-radius:99px;background:var(--danger);color:#fff;display:grid;place-items:center;padding:0 3px}
 .stage{flex:1;position:relative;overflow:hidden}
-.dock{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:8px;padding:10px 7px;background:rgba(20,15,28,.5);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.dock{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:5000;display:flex;flex-direction:column;gap:8px;padding:10px 7px;background:rgba(20,15,28,.5);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
 .dockicon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.35rem;background:linear-gradient(160deg,#2c2440,#241d36);border:1px solid rgba(255,255,255,.05);transition:transform .16s,box-shadow .2s;position:relative}
 .dockicon:hover{transform:scale(1.13) translateX(3px);box-shadow:0 8px 22px rgba(0,0,0,.4)}.dockicon.run::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent)}
-.dockicon .tip{position:absolute;left:56px;white-space:nowrap;background:#000c;padding:3px 9px;border-radius:7px;font-size:.75rem;opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}.dockicon:hover .tip{opacity:1}
+.dockicon .tip{position:absolute;left:58px;white-space:nowrap;background:var(--surface);color:var(--text);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.28);padding:5px 11px;border-radius:8px;font-size:.75rem;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;transform:translateX(-4px);z-index:9500}.dockicon:hover .tip{opacity:1;transform:none}
+.dock.bottom .dockicon .tip{left:50%;top:-42px;transform:translateX(-50%) translateY(4px)}.dock.bottom .dockicon:hover .tip{transform:translateX(-50%)}
 #desktop .dock.bottom{left:50%;top:auto;bottom:10px;transform:translateX(-50%);flex-direction:row}
-.taskbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:40;display:flex;gap:6px;padding:5px;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:12px;max-width:80%;overflow:auto}
+.taskbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:5000;display:flex;gap:6px;padding:5px;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:12px;max-width:80%;overflow:auto}
 .taskbar:empty{display:none}.tbtn{display:flex;gap:6px;align-items:center;padding:5px 11px;border-radius:8px;font-size:.78rem;background:rgba(255,255,255,.05);transition:background .2s;white-space:nowrap}.tbtn:hover{background:rgba(255,255,255,.12)}.tbtn.active{background:var(--accent);color:#20140c}
 
 /* windows */
@@ -117,8 +118,8 @@ input,select,textarea{user-select:text}
 .fitem .fi{font-size:2rem}.fitem .fn{font-size:.74rem;word-break:break-word;line-height:1.2;max-height:2.4em;overflow:hidden}
 
 /* terminal */
-.term{height:100%;display:flex;flex-direction:column;background:#120e1a;font-family:var(--mono);font-size:.82rem}
-.termout{flex:1;overflow:auto;padding:10px 12px;white-space:pre-wrap;line-height:1.4;color:#d7cff0}
+.term{height:100%;display:flex;flex-direction:column;background:#120e1a;font-family:var(--mono);font-size:.82rem;user-select:text}
+.termout{flex:1;overflow:auto;padding:10px 12px;white-space:pre-wrap;line-height:1.4;color:#d7cff0;user-select:text;cursor:text}
 .terminp{display:flex;align-items:center;gap:6px;padding:7px 12px;border-top:1px solid var(--line)}.terminp .ps{color:var(--accent2)}.terminp input{flex:1;background:none;border:0;outline:none;color:#fff;font-family:var(--mono)}
 
 /* editor */
@@ -126,18 +127,19 @@ input,select,textarea{user-select:text}
 .edarea{flex:1;width:100%;background:#141020;color:#e6e0f5;border:0;outline:none;padding:14px;font-family:var(--mono);font-size:.85rem;line-height:1.5;resize:none}
 
 /* launcher */
-#launcher{position:absolute;inset:0;z-index:70;display:none;flex-direction:column;align-items:center;padding-top:8vh;background:rgba(15,11,22,.7);backdrop-filter:blur(20px);animation:fadeIn .18s}
+#launcher{position:absolute;inset:0;z-index:6000;display:none;flex-direction:column;align-items:center;padding-top:8vh;background:rgba(15,11,22,.7);backdrop-filter:blur(20px);animation:fadeIn .18s}
 #launcher input{width:min(520px,80%);padding:14px 18px;border-radius:14px;background:rgba(40,33,56,.9);border:1px solid var(--line);outline:none;font-size:1.05rem;margin-bottom:26px}
 .lgrid{display:grid;grid-template-columns:repeat(auto-fill,110px);gap:14px;width:min(760px,90%);justify-content:center}
 .litem{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:14px;cursor:pointer;transition:background .15s,transform .15s}.litem:hover{background:rgba(255,255,255,.08);transform:translateY(-2px)}
 .litem .li{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.6rem;background:linear-gradient(160deg,var(--accent),var(--accent3))}.litem .ln{font-size:.78rem}
 
 /* context menu */
-.ctx{position:absolute;z-index:120;min-width:180px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,.5);padding:5px;animation:popIn .12s}
-.ctx button{display:flex;width:100%;gap:10px;align-items:center;padding:8px 12px;border-radius:7px;font-size:.82rem;text-align:left}.ctx button:hover{background:var(--accent);color:#20140c}.ctx .sep{height:1px;background:var(--line);margin:4px 6px}.ctx button.dngtxt{color:var(--danger)}.ctx button.dngtxt:hover{background:var(--danger);color:#fff}
+.ctx{position:absolute;z-index:7000;min-width:180px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,.5);padding:5px;animation:popIn .12s}
+.ctx button .ico{width:16px;height:16px;flex:0 0 auto}
+.ctx button{display:flex;width:100%;gap:9px;align-items:center;padding:8px 12px;border-radius:7px;font-size:.82rem;text-align:left}.ctx button:hover{background:var(--accent);color:#20140c}.ctx .sep{height:1px;background:var(--line);margin:4px 6px}.ctx button.dngtxt{color:var(--danger)}.ctx button.dngtxt:hover{background:var(--danger);color:#fff}
 
 /* panels: notifications */
-#notif{position:absolute;top:38px;right:8px;width:340px;max-height:70vh;z-index:80;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden;animation:popIn .16s}
+#notif{position:absolute;top:38px;right:8px;width:340px;max-height:70vh;z-index:6000;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden;animation:popIn .16s}
 #notif .nh{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}.nh h4{flex:1;font-size:.95rem}
 .nlist{overflow:auto;padding:8px}.ncard{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;position:relative}.ncard.unread{border-left:3px solid var(--accent)}
 .ncard .nt{font-size:.85rem;font-weight:600;margin-bottom:2px}.ncard .nb{font-size:.78rem;color:var(--muted)}.ncard .nx{position:absolute;top:8px;right:8px;color:var(--muted);cursor:pointer;font-size:.75rem}
@@ -150,12 +152,12 @@ input,select,textarea{user-select:text}
 #setup .field input{width:100%;padding:11px 13px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none}
 #setup .mark{width:76px;height:76px}
 /* dialog + toast */
-#modal{position:absolute;inset:0;z-index:150;display:none;place-items:center;background:rgba(10,7,16,.55)}
+#modal{position:absolute;inset:0;z-index:7500;display:none;place-items:center;background:rgba(10,7,16,.55)}
 .dlg{width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:popIn .18s}
 .dlg h4{font-size:1.05rem;margin-bottom:8px}.dlg p{color:var(--muted);font-size:.85rem;margin-bottom:14px;white-space:pre-wrap}
 .dlg input{width:100%;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);outline:none;margin-bottom:14px}
 .dlg .btns{display:flex;gap:9px;justify-content:flex-end}
-.toast{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:160;background:#000d;border:1px solid var(--line);padding:11px 18px;border-radius:11px;font-size:.82rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.toast{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:8000;background:#000d;border:1px solid var(--line);padding:11px 18px;border-radius:11px;font-size:.82rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 /* settings nav */
 .setwrap{display:flex;height:100%}.setnav{width:172px;flex:0 0 auto;border-right:1px solid var(--line);overflow:auto;padding:8px}
 .setnav button{display:flex;width:100%;gap:9px;padding:8px 11px;border-radius:8px;font-size:.82rem;text-align:left;color:var(--muted);transition:background .15s,color .15s}.setnav button:hover{background:var(--surface2);color:var(--text)}.setnav button.on{background:var(--accent);color:#20140c;font-weight:600}
@@ -344,13 +346,13 @@ function applyDock(){const d=$("#dock");const pos=(SET&&SET.dock_pos)||"left";co
   d.classList.toggle("bottom",pos==="bottom");d.style.setProperty("--dksz",sz+"px");
   d.querySelectorAll(".dockicon").forEach(x=>{x.style.width=sz+"px";x.style.height=sz+"px";});}
 function dockMenu(e,id){e.preventDefault();e.stopPropagation();ctxMenu(e.clientX,e.clientY-4,[
-  ["Open "+APPS[id].name,()=>app(id)],"sep",
-  ["Dock on the left",()=>saveSet({dock_pos:"left"}).then(applyDock)],
-  ["Dock on the bottom",()=>saveSet({dock_pos:"bottom"}).then(applyDock)],"sep",
-  ["Small icons",()=>saveSet({dock_size:36}).then(applyDock)],
-  ["Medium icons",()=>saveSet({dock_size:44}).then(applyDock)],
-  ["Large icons",()=>saveSet({dock_size:56}).then(applyDock)],"sep",
-  ["Dock settings",()=>app("settings","appearance")]]);}
+  ["Open "+APPS[id].name,()=>app(id),false,APPS[id].icon],"sep",
+  ["Dock on the left",()=>{saveSet({dock_pos:"left"});applyDock();}],
+  ["Dock on the bottom",()=>{saveSet({dock_pos:"bottom"});applyDock();}],"sep",
+  ["Small icons",()=>{saveSet({dock_size:36});applyDock();}],
+  ["Medium icons",()=>{saveSet({dock_size:44});applyDock();}],
+  ["Large icons",()=>{saveSet({dock_size:56});applyDock();}],"sep",
+  ["Dock settings",()=>app("settings","appearance"),false,"settings"]]);}
 function app(id,arg){ // focus if open, else open
   const ex=Object.values(WIN).find(w=>w.app===id&&w.ws===CURWS);
   if(ex){if(ex.min)restoreWin(ex.id);focusWin(ex.id);if(arg&&ex.onarg)ex.onarg(arg);return;}
@@ -425,14 +427,14 @@ async function clearNotif(){await api("/api/notifications","DELETE");refreshNoti
 async function notify(title,body){try{await api("/api/notifications","POST",{title,body});refreshNotif();}catch(e){}}
 
 /* user menu + context + dialogs */
-function userMenu(e){e.stopPropagation();const me=(SET&&SET._me)||"admin";ctxMenu(e.clientX-160,34,[["👤 "+me,()=>app("settings","account")],["⚙ Settings",()=>app("settings")],["🖥 System info",()=>app("sysinfo")],"sep",["🔒 Lock",()=>location.reload()],["⏻ Sign out",logout]]);}
+function userMenu(e){e.stopPropagation();const me=(SET&&SET._me)||"admin";ctxMenu(e.clientX-170,34,[[me,()=>app("settings","account"),false,"users"],["Settings",()=>app("settings"),false,"settings"],["System info",()=>app("sysinfo"),false,"sysinfo"],["Software",()=>app("software"),false,"storage"],"sep",["Lock",()=>location.reload(),false,"power"],["Sign out",logout,false,"power"]]);}
 function ctxMenu(x,y,items){closeCtx();const m=ce("div","ctx");m.style.left=x+"px";m.style.top=y+"px";
-  items.forEach(it=>{if(it==="sep"){m.appendChild(ce("div","sep"));return;}const b=ce("button");if(it[2])b.className="dngtxt";b.textContent=it[0];b.onclick=()=>{closeCtx();it[1]();};m.appendChild(b);});
+  items.forEach(it=>{if(it==="sep"){m.appendChild(ce("div","sep"));return;}const b=ce("button");if(it[2])b.className="dngtxt";b.innerHTML=(it[3]?ic(it[3]):"")+" <span>"+esc(it[0])+"</span>";b.onclick=()=>{closeCtx();it[1]();};m.appendChild(b);});
   $("#stage").appendChild(m);const r=m.getBoundingClientRect(),sr=$("#stage").getBoundingClientRect();if(r.right>sr.right)m.style.left=(x-r.width)+"px";}
 function closeCtx(){document.querySelectorAll(".ctx").forEach(c=>c.remove());}
 document.addEventListener("click",e=>{if(!e.target.closest(".ctx"))closeCtx();if(!e.target.closest("#notif")&&!e.target.closest("#notifBtn"))$("#notif").style.display="none";});
 $("#stage").addEventListener("contextmenu",e=>{if(e.target.closest(".win"))return;e.preventDefault();
-  ctxMenu(e.offsetX,e.offsetY,[["🗂 Open Files",()=>app("files")],["⌨ Open Terminal",()=>app("terminal")],"sep",["🖼 Change wallpaper",()=>app("settings","appearance")],["🖥 Display settings",()=>app("settings","display")]]);});
+  ctxMenu(e.offsetX,e.offsetY,[["Open Files",()=>app("files"),false,"files"],["Open Terminal",()=>app("terminal"),false,"terminal"],"sep",["Change wallpaper",()=>app("settings","appearance"),false,"wallpaper"],["Display settings",()=>app("settings","display"),false,"display"]]);});
 function dialog(title,msg,{input,ok="OK",danger}={}){return new Promise(res=>{const m=$("#modal");m.style.display="grid";
   m.innerHTML=`<div class="dlg"><h4>${esc(title)}</h4><p>${esc(msg||"")}</p>${input!==undefined?`<input id="dlgi" value="${esc(input)}">`:""}<div class="btns"><button class="mini ghost" id="dc">Cancel</button><button class="mini ${danger?'dng':''}" id="dok">${ok}</button></div></div>`;
   const close=v=>{m.style.display="none";m.innerHTML="";res(v);};$("#dc").onclick=()=>close(null);
@@ -580,6 +582,8 @@ APP_RENDER.assistant=(wb,o)=>{wb.innerHTML=`<div class="pad"><h3>Ask AI to do so
   <div class="aihdr" id="aih${o.id}" style="font-size:.78rem;color:var(--muted);margin-bottom:8px"><span style="color:var(--ok)">●</span> Local AI</div>
   <div id="ans${o.id}" style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:15px;min-height:120px;line-height:1.55;white-space:pre-wrap">Ask anything, or tell me to do something.</div></div>`;$("#ai"+o.id).focus();};
 async function aiGo(id){const q=$("#ai"+id).value.trim();if(!q)return;const ans=$("#ans"+id),h=$("#aih"+id);
+  const emailM=q.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/);
+  if(emailM && /\b(send|mail|e-?mail|maik|deliver|forward|to)\b/i.test(q)){return mailTask(id,q,emailM[0]);}
   const act=parseIntent(q);
   if(act){h.innerHTML=`<span style="color:var(--accent2)">⚙</span> Action`;ans.textContent="";
     if(act.danger&&!await dialog("Confirm action",act.confirm,{ok:"Do it",danger:true})){ans.textContent="Cancelled.";return;}
@@ -627,6 +631,9 @@ const SETPAGE={
    <div class="setrow"><div class="lbl">Wallpaper<div class="d">Desktop background</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${wps.map(w=>`<div class="wp wp-${w} ${SET.wallpaper===w?'on':''}" onclick="saveSet({wallpaper:'${w}'});app('settings','appearance')"></div>`).join("")}<label class="chip" style="cursor:pointer">Upload…<input type="file" accept="image/*" style="display:none" onchange="wallUpload(this)"></label>${SET.wallpaper==='custom'?'<span class="tag t-ok">custom</span>':''}</div></div>
    <div class="setrow"><div class="lbl">Font scale<div class="d">${(SET.font_scale||1).toFixed(2)}×</div></div><input type="range" min="0.8" max="1.4" step="0.05" value="${SET.font_scale||1}" oninput="saveSet({font_scale:+this.value})"></div>
    <div class="setrow"><div class="lbl">Reduce motion<div class="d">Minimize animations</div></div><div class="togg ${SET.reduce_motion?'on':''}" onclick="saveSet({reduce_motion:!SET.reduce_motion});app('settings','appearance')"></div></div>
+   <h3 style="margin-top:16px;font-size:.95rem">Dock</h3>
+   <div class="setrow"><div class="lbl">Position</div><div class="chips"><button class="chip" onclick="saveSet({dock_pos:'left'});applyDock()">Left</button><button class="chip" onclick="saveSet({dock_pos:'bottom'});applyDock()">Bottom</button> <span class="tag t-mut">${(SET.dock_pos||'left')}</span></div></div>
+   <div class="setrow"><div class="lbl">Icon size<div class="d">${SET.dock_size||44}px</div></div><input type="range" min="32" max="60" step="4" value="${SET.dock_size||44}" oninput="saveSet({dock_size:+this.value});applyDock()"></div>
    <style>.wp-aurora{background:linear-gradient(135deg,#1a1330,#2c1d44)}.wp-ember{background:linear-gradient(135deg,#2a1410,#160d12)}.wp-forest{background:linear-gradient(135deg,#0f2620,#123a2c)}.wp-ocean{background:linear-gradient(135deg,#0d1b33,#123a55)}.wp-rose{background:linear-gradient(135deg,#2c1526,#45203a)}.wp-mono{background:linear-gradient(135deg,#1a1a1f,#2a2a33)}</style>`;},
  account:(b)=>{b.innerHTML=`<h3>Account</h3><div class="sub2">Manage your Fabric OS user.</div>
    <div class="row"><div class="inp"><label>Username</label><input id="unm" value="admin"></div><button class="mini ghost" onclick="chUser()">Update</button></div>
@@ -688,9 +695,7 @@ const SETPAGE={
    <div id="uplist"></div>
    <h3 style="margin-top:16px;font-size:.95rem">Feedback &amp; support</h3>
    <div class="sub2">Send feedback, a support request or a bug report to Patience AI (info@patienceai.in).</div>
-   <div class="row"><div class="inp"><label>Type</label><select id="fbT"><option>Feedback</option><option>Support</option><option>Bug report</option></select></div><div class="inp" style="flex:1"><label>Subject</label><input id="fbSub" placeholder="Short summary"></div></div>
-   <div class="inp" style="margin-bottom:10px"><label>Message</label><textarea id="fbM" style="min-height:90px;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none;resize:vertical;font-family:inherit"></textarea></div>
-   <button class="mini" onclick="feedbackForm()">Open feedback form…</button> <button class="mini ghost" onclick="sendFeedback()">Quick send</button> <span id="fbS" class="sub2" style="margin-left:8px"></span>`;
+   <button class="mini" onclick="feedbackForm()">Send feedback…</button>`;
    api("/api/sys/info").then(x=>{const k=document.getElementById("ab_k"),c=document.getElementById("ab_c");if(k)k.textContent=x.kernel;if(c)c.textContent=x.cpu;});},
 };
 async function chUser(){const nu=$("#unm").value.trim();if(!nu)return;try{await api("/api/account/username","POST",{username:nu});toast("Username updated");}catch(e){toast(e);}}
@@ -942,6 +947,27 @@ async function agentCode(id,q){const ans=$("#ans"+id),h=$("#aih"+id);
   }
   h.innerHTML=`<span style="color:var(--warn)">!</span> Needs attention`;
   ans.innerHTML=`<span class="tag t-warn">Could not get it running after 3 tries</span><div class="sub2" style="margin-top:8px">The local model may be too small for this. Configure Cloud AI (Settings -> Cloud AI) for stronger coding.</div><details style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent2)">Last code</summary><pre class="code" style="white-space:pre-wrap">${esc(code||"")}</pre></details>`;}
+
+
+async function mailTask(id,q,to){const ans=$("#ans"+id),h=$("#aih"+id);
+  let subjM=q.match(/(?:write|create|send|compose)\s+a?\s*(.*?)\s*(note|mail|e-?mail|message|maik)/i);
+  let subj=(subjM&&subjM[1]?subjM[1].trim():"Hello");if(!subj||subj.length<2)subj="Hello";
+  h.innerHTML=`<span class="spinner"></span> Composing…`;ans.textContent="";
+  let body;try{body=(await api("/api/ask","POST",{prompt:`Write a short, friendly ${subj} email body, 2-3 sentences. Output only the body text, no subject.`})).text;}catch(e){body="Hi,\n\nSending you a quick note from Fabric OS.\n\nBest,";}
+  const wantNote=/\b(note|file|document)\b/i.test(q);let noteMsg="";
+  if(wantNote){const path="/Documents/"+subj.replace(/[^\w\-]+/g,"_")+".txt";try{await api("/api/fs/write","POST",{path,content:body});noteMsg="Note saved to "+path+".";}catch(e){}}
+  h.innerHTML=`<span class="spinner"></span> Sending email to ${esc(to)}…`;
+  try{await api("/api/mail/send","POST",{to,subject:cap(subj),body});
+    h.innerHTML=`<span style="color:var(--ok)">✓</span> Email sent`;
+    ans.innerHTML=`<div class="agentdone"><div class="okcheck"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-16"/></svg></div><div><b>Done</b><div class="d" style="color:var(--muted)">${noteMsg?noteMsg+" ":""}Email sent to ${esc(to)}</div></div></div><b style="display:block;margin-top:10px">Message</b><pre class="code" style="white-space:pre-wrap">${esc(body)}</pre>`;
+    notify("Mail","Sent to "+to);
+  }catch(e){
+    h.innerHTML=`<span style="color:var(--warn)">!</span> Email not sent`;
+    ans.innerHTML=`${noteMsg?`<div class="tag t-ok" style="margin-bottom:8px">✓ ${esc(noteMsg)}</div><br>`:""}
+     <span class="tag t-bad">Email NOT sent — ${esc(String(e))}</span>
+     <div class="sub2" style="margin-top:10px">To actually send email, set up SMTP once in <span class="link" onclick="app('settings','mail')">Settings → Mail</span> (host, port, username, from address, app password). Then ask again and it will deliver to <b>${esc(to)}</b>.</div>
+     <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent2)">Draft message</summary><pre class="code" style="white-space:pre-wrap">${esc(body)}</pre></details>`;
+  }}
 
 </script>
 </body>
