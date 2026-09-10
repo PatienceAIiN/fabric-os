@@ -445,7 +445,18 @@ document.addEventListener("keydown",e=>{
   if(e.metaKey&&e.key.toLowerCase()==="d"){e.preventDefault();Object.values(WIN).forEach(w=>w.el.classList.toggle("hidden"));}
   if(e.metaKey&&e.key.toLowerCase()==="l"){e.preventDefault();location.reload();}
   if(e.key==="Escape"){closeLauncher();closeCtx();}
+  if(e.altKey&&e.key==="Tab"){e.preventDefault();cycleWindows(e.shiftKey?-1:1);}
+  if((e.ctrlKey&&e.key.toLowerCase()==="w")||(e.altKey&&e.key==="F4")){const f=topWindow();if(f){e.preventDefault();closeWin(f.id);}}
+  if(e.ctrlKey&&e.key.toLowerCase()==="q"){const f=topWindow();if(f){e.preventDefault();closeWin(f.id);}}
+  if(e.metaKey&&/^[1-9]$/.test(e.key)){e.preventDefault();switchWS(+e.key-1);}
+  if(e.ctrlKey&&e.altKey&&e.key==="ArrowRight"){e.preventDefault();switchWS(CURWS+1);}
+  if(e.ctrlKey&&e.altKey&&e.key==="ArrowLeft"){e.preventDefault();switchWS(CURWS-1);}
+  if(e.metaKey&&e.key.toLowerCase()==="t"){e.preventDefault();app("terminal");}
 });
+function topWindow(){return Object.values(WIN).filter(w=>w.ws===CURWS&&!w.min).sort((a,b)=>(+b.el.style.zIndex||0)-(+a.el.style.zIndex||0))[0];}
+function cycleWindows(dir){const ws=Object.values(WIN).filter(w=>w.ws===CURWS&&!w.min);if(ws.length<2)return;ws.sort((a,b)=>(+a.el.style.zIndex||0)-(+b.el.style.zIndex||0));focusWin(ws[0].id);}
+function switchWS(n){if(!WS.length)WS=["Workspace 1"];n=(n+WS.length)%WS.length;CURWS=n;$("#wsname").textContent=WS[n]||("Workspace "+(n+1));
+  Object.values(WIN).forEach(w=>{w.el.classList.toggle("hidden",w.ws!==CURWS||w.min);});renderTaskbar();markDock();}
 
 /* =================== APPS =================== */
 const APP_RENDER={};
@@ -573,6 +584,7 @@ async function aiGo(id){const q=$("#ai"+id).value.trim();if(!q)return;const ans=
   if(act){h.innerHTML=`<span style="color:var(--accent2)">⚙</span> Action`;ans.textContent="";
     if(act.danger&&!await dialog("Confirm action",act.confirm,{ok:"Do it",danger:true})){ans.textContent="Cancelled.";return;}
     try{const msg=await act.run();ans.textContent="✓ "+msg;notify("AI action",msg);}catch(e){ans.textContent="✗ "+e;}return;}
+  if(isCodeTask(q)){return agentCode(id,q);}
   if(isTask(q)){return agentExecute(id,q);}
   h.innerHTML=`<span class="spinner"></span> Thinking locally…`;ans.textContent="";
   try{const j=await api("/api/ask","POST",{prompt:q});h.innerHTML=`<span style="color:var(--ok)">●</span> Local AI · ${j.backend}`;ans.textContent=j.text;}catch(e){h.textContent="Error";ans.textContent=String(e);}}
@@ -904,6 +916,32 @@ async function agentGo(id){const plan=WIN[id]._plan||[];let ok=0,skip=0;const lo
   $("#aih"+id).innerHTML=`<span style="color:var(--ok)">✓</span> Agent finished`;
   notify("Assistant","Task complete: "+ok+"/"+plan.length+" steps");
 }
+
+
+function isCodeTask(q){return (/\b(write|create|make|generate|build)\b/i.test(q) && /\b(code|script|program|function|app)\b/i.test(q) && /\b(run|execute)\b/i.test(q)) || /\bwrite a (python|bash|node|javascript)\b/i.test(q);}
+function stripCode(t){let m=t.match(/```[a-z]*\n([\s\S]*?)```/i);if(m)return m[1].trim();return t.trim();}
+async function agentCode(id,q){const ans=$("#ans"+id),h=$("#aih"+id);
+  const js=/javascript|node|\.js/i.test(q),sh=/bash|shell|\.sh/i.test(q);
+  const lang=js?"node":sh?"bash":"python";const ext={python:"py",node:"js",bash:"sh"}[lang];const runner={python:"python3",node:"node",bash:"bash"}[lang];
+  const path="/Documents/agent_program."+ext;
+  h.innerHTML=`<span class="spinner"></span> Writing ${lang} code…`;ans.textContent="";
+  let code;try{code=stripCode((await api("/api/ask","POST",{prompt:`Write a complete, correct ${lang} program for this task: "${q}". Output ONLY the ${lang} source code. No explanation, no markdown fences.`})).text);}catch(e){ans.textContent="AI error: "+e;return;}
+  for(let attempt=1;attempt<=3;attempt++){
+    await api("/api/fs/write","POST",{path,content:code});
+    h.innerHTML=`<span class="spinner"></span> Running (try ${attempt})…`;
+    let r;try{r=await api("/api/exec","POST",{cmd:runner+" "+path.slice(1),cwd:"/"});}catch(e){r={out:String(e),code:1};}
+    const okc=(r.code||0)===0 && !/error|traceback|exception/i.test(r.out||"");
+    if(okc){h.innerHTML=`<span style="color:var(--ok)">✓</span> Code ran successfully`;
+      ans.innerHTML=`<div class="agentdone"><div class="okcheck"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-16"/></svg></div><div><b>Done</b><div class="d" style="color:var(--muted)">wrote & ran ${esc(path)}</div></div></div>
+       <b style="display:block;margin-top:10px">Output</b><pre class="code" style="white-space:pre-wrap">${esc(r.out||"(no output)")}</pre>
+       <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent2)">View code</summary><pre class="code" style="white-space:pre-wrap">${esc(code)}</pre></details>
+       <button class="chip" style="margin-top:8px" onclick="app('editor','${path}')">Open in editor</button>`;
+      notify("Agent","Code written & ran: "+path);return;}
+    h.innerHTML=`<span class="spinner"></span> Debugging (try ${attempt})…`;
+    try{code=stripCode((await api("/api/ask","POST",{prompt:`This ${lang} code produced an error:\n${(r.out||"").slice(0,600)}\n\nCode:\n${code}\n\nReturn ONLY the corrected full ${lang} code.`})).text);}catch(e){break;}
+  }
+  h.innerHTML=`<span style="color:var(--warn)">!</span> Needs attention`;
+  ans.innerHTML=`<span class="tag t-warn">Could not get it running after 3 tries</span><div class="sub2" style="margin-top:8px">The local model may be too small for this. Configure Cloud AI (Settings -> Cloud AI) for stronger coding.</div><details style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent2)">Last code</summary><pre class="code" style="white-space:pre-wrap">${esc(code||"")}</pre></details>`;}
 
 </script>
 </body>

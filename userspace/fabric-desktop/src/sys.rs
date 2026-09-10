@@ -1202,7 +1202,7 @@ pub fn agent_plan(goal: &str) -> Vec<Value> {
     if let Some(pos) = ["create", "make", "new "].iter().find_map(|k| g.find(k)) {
         let _ = pos;
         // extract name after folder/project
-        let after = g.rsplit(|c| c == ' ').collect::<Vec<_>>();
+        let after = g.rsplit(' ').collect::<Vec<_>>();
         let _ = after;
         if let Some(idx) = g
             .find("folder")
@@ -1211,8 +1211,8 @@ pub fn agent_plan(goal: &str) -> Vec<Value> {
         {
             let raw = &goal[idx..];
             let name: String = raw
-                .splitn(2, ' ')
-                .nth(1)
+                .split_once(' ')
+                .map(|x| x.1)
                 .unwrap_or("New Folder")
                 .replace("called ", "")
                 .replace("named ", "")
@@ -1243,20 +1243,29 @@ pub fn agent_plan(goal: &str) -> Vec<Value> {
     // write a note / file named X saying Y
     if g.contains("note") || g.contains("write") {
         let content = goal
-            .splitn(2, "saying")
-            .nth(1)
-            .or_else(|| goal.splitn(2, "with").nth(1))
+            .split_once("saying")
+            .map(|x| x.1)
+            .or_else(|| goal.split_once("with").map(|x| x.1))
             .unwrap_or("Hello from Fabric OS.")
             .trim()
             .to_string();
         plan.push(json!({"tool":"write","args":{"path":"/Documents/note.txt","content":content},"why":"write note"}));
         return plan;
     }
+    // run / execute a shell command (real)
+    if g.starts_with("run ") || g.starts_with("execute ") || g.contains("command:") {
+        let cmd = goal.splitn(2, ' ').nth(1).unwrap_or("").to_string();
+        let cmd = cmd.trim_start_matches("command:").trim().to_string();
+        if !cmd.is_empty() {
+            plan.push(json!({"tool":"exec","args":{"cmd":cmd,"cwd":"/"},"why":"run command"}));
+            return plan;
+        }
+    }
     // find / search X
     if let Some(k) = ["find ", "search "].iter().find(|k| g.contains(**k)) {
         let q = goal
-            .splitn(2, k.trim())
-            .nth(1)
+            .split_once(k.trim())
+            .map(|x| x.1)
             .unwrap_or("")
             .trim()
             .trim_start_matches("for ")
@@ -1282,6 +1291,26 @@ fn agent_exec_tool(tool: &str, args: &Value) -> Result<Value, String> {
         "trash" => fs_trash(args["path"].as_str().unwrap_or("")),
         "search" => fs_search("/", args["q"].as_str().unwrap_or("")),
         "list" => fs_list(args["path"].as_str().unwrap_or("/")),
+        "exec" => {
+            let r = exec(
+                args["cmd"].as_str().unwrap_or(""),
+                args["cwd"].as_str().unwrap_or("/"),
+            );
+            let code = r["code"].as_i64().unwrap_or(0);
+            if code == 0 {
+                Ok(r)
+            } else {
+                Err(format!(
+                    "exit {code}: {}",
+                    r["out"]
+                        .as_str()
+                        .unwrap_or("")
+                        .chars()
+                        .take(200)
+                        .collect::<String>()
+                ))
+            }
+        }
         "notify" => Ok(json!({"ok":true})),
         _ => Err(format!("unknown tool {tool}")),
     }
@@ -1294,7 +1323,7 @@ pub fn agent_run(goal: &str, autonomous: bool) -> Value {
         return json!({ "steps": [], "done": 0, "skipped": 0, "failed": 0, "total": 0,
             "message": "No actionable plan. Try: 'organize my downloads', 'create a project called X', 'find <name>'." });
     }
-    let serious = ["move", "trash", "launch"];
+    let serious = ["move", "trash", "launch", "exec"];
     let (mut done, mut skipped, mut failed) = (0, 0, 0);
     let mut steps = Vec::new();
     for st in &plan {
