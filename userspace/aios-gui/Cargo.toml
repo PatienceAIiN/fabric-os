@@ -1,0 +1,22 @@
+[package]
+name = "aios-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Lumen — native GUI AI command bar (M4/M15/M24)"
+
+[[bin]]
+name = "aios-gui"
+path = "src/main.rs"
+
+[dependencies]
+fltk = { version = "1.4", features = ["fltk-bundled"] }
+libprovider = { path = "../../libraries/libprovider" }
+libresource = { path = "../../libraries/libresource" }
+libagent = { path = "../../libraries/libagent" }
+libintent = { path = "../../libraries/libintent" }
+libgovernor = { path = "../../libraries/libgovernor" }
+libprovenance = { path = "../../libraries/libprovenance" }
+
+[lints.rust]
+unsafe_code = "allow"

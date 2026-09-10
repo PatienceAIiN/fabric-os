@@ -1,0 +1,21 @@
+[package]
+name = "bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Microbenchmarks for the ai-native-os core (measured, not claimed)"
+
+[[bin]]
+name = "aios-bench"
+path = "src/main.rs"
+
+[dependencies]
+libcapability = { path = "../../libraries/libcapability" }
+libcrypto = { path = "../../libraries/libcrypto" }
+libagent = { path = "../../libraries/libagent" }
+libintent = { path = "../../libraries/libintent" }
+libgovernor = { path = "../../libraries/libgovernor" }
+libprovenance = { path = "../../libraries/libprovenance" }
+
+[lints.rust]
+unsafe_code = "forbid"

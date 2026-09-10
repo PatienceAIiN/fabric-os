@@ -1,0 +1,17 @@
+[package]
+name = "libgovernor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Deterministic AI Governor: capability + intent + risk enforcement"
+
+[dependencies]
+libcapability = { path = "../libcapability" }
+libintent = { path = "../libintent" }
+libagent = { path = "../libagent" }
+libprovenance = { path = "../libprovenance" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

@@ -1,0 +1,13 @@
+[package]
+name = "libsettings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Unified OS settings model with validation and JSON persistence (M5/M49)"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

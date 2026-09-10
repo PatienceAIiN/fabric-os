@@ -1,0 +1,27 @@
+[Unit]
+Description=Fabric OS website
+After=network-online.target postgresql@17-main.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fabricos
+Group=fabricos
+WorkingDirectory=/opt/fabric-os/website
+EnvironmentFile=/etc/fabric-os/fabric-os.env
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=512M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,26 @@
+[package]
+name = "fabric-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Fabric OS desktop: web-based shell with login, CRUD, activity, monitor, AI"
+
+[[bin]]
+name = "fabric-desktop"
+path = "src/main.rs"
+
+[dependencies]
+libagent = { path = "../../libraries/libagent" }
+libcapability = { path = "../../libraries/libcapability" }
+libintent = { path = "../../libraries/libintent" }
+libgovernor = { path = "../../libraries/libgovernor" }
+libprovenance = { path = "../../libraries/libprovenance" }
+libresource = { path = "../../libraries/libresource" }
+libprovider = { path = "../../libraries/libprovider" }
+libmemory = { path = "../../libraries/libmemory" }
+libcrypto = { path = "../../libraries/libcrypto" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "allow"

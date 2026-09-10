@@ -1,0 +1,93 @@
+# M2 rootfs: minimal Debian + systemd, bootable from a virtio disk, with the
+# ai-native-os control binary baked in and a boot self-test that runs the
+# security demos inside the guest.
+FROM docker.io/library/debian:stable-slim
+
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      systemd-sysv udev iproute2 kmod \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN echo "Fabric OS (userspace)" > /etc/issue \
+ && printf 'NAME="Fabric OS"\nID=fabric-os\nPRETTY_NAME="Fabric OS"\nVERSION="0.1.0"\n' > /etc/os-release \
+ && echo "ainos" > /etc/hostname \
+ && : > /etc/machine-id
+
+RUN echo 'root:root' | chpasswd \
+ && mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d \
+ && printf '[Service]\nExecStart=\nExecStart=-/sbin/agetty --autologin root --keep-baud 115200,57600,38400,9600 %%I $TERM\n' \
+      > /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+
+COPY aios /usr/local/bin/aios
+
+# graphical VGA console (tty1) autologin + welcome, so the QEMU window shows a
+# usable ai-native-os session.
+RUN mkdir -p /etc/systemd/system/getty@tty1.service.d \
+ && printf '[Service]\nExecStart=\nExecStart=-/sbin/agetty --autologin root --noclear %%I $TERM\n' \
+      > /etc/systemd/system/getty@tty1.service.d/autologin.conf \
+ && printf '\n\033[38;5;208m  Fabric OS\033[0m\n\n  Desktop (from your host browser): http://localhost:8788  (admin/fabric)\n\n  Try:\n    aios ask "what is capability-based security?"\n    aios activity        # live governor decisions\n    aios monitor         # system resources\n    aios demo1 / demo3   # security demonstrations\n\n' > /etc/motd
+
+
+# One boot self-test: M2 markers + persistent boot counter + the ai-native-os
+# security demos (intent+injection+rollback, multi-agent delegation+revocation),
+# then power off only when the kernel cmdline requests it.
+RUN cat > /etc/systemd/system/ainos-selftest.service <<'UNIT' \
+ && systemctl enable ainos-selftest.service
+[Unit]
+Description=ai-native-os boot self-test
+After=multi-user.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+StandardOutput=journal+console
+ExecStart=/bin/sh -c 'mkdir -p /var/lib/ainos; c=$(cat /var/lib/ainos/bootcount 2>/dev/null || echo 0); c=$((c+1)); echo $c > /var/lib/ainos/bootcount; echo "==== FABRIC OS USERSPACE OK ==== (AI-NATIVE-OS M2 USERSPACE OK)"; echo "init: $(readlink -f /proc/1/exe)"; echo "os:   $(. /etc/os-release; echo $PRETTY_NAME)"; echo "boot count (persisted): $c"; echo "==== M2 SELFTEST COMPLETE ===="; echo "==== AI-NATIVE-OS RUNNING IN GUEST ===="; /usr/local/bin/aios demo1; echo "----"; /usr/local/bin/aios demo3; echo "==== AI-NATIVE-OS OS-TEST COMPLETE ===="; grep -q ainos.autopoweroff /proc/cmdline && systemctl poweroff || true'
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+# --- Fabric OS desktop server (served by the booted OS) ---
+COPY fabric-desktop /usr/local/bin/fabric-desktop
+RUN cat > /etc/systemd/system/fabric-desktop.service <<'UNIT' \
+ && systemctl enable fabric-desktop.service
+[Unit]
+Description=Fabric OS desktop server
+After=fabric-net.service network.target
+[Service]
+Environment=FABRIC_ADDR=0.0.0.0:8787
+Environment=HOME=/root
+Environment=FABRIC_ROOT=/root/FabricOS
+ExecStart=/usr/local/bin/fabric-desktop
+Restart=on-failure
+NoNewPrivileges=yes
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+# --- guest networking: load virtio_net (module not in rootfs) + static IP for
+# QEMU user-net, so the host can reach the Fabric desktop via hostfwd ---
+COPY mods/failover.ko mods/net_failover.ko mods/virtio_net.ko /opt/mods/
+RUN cat > /usr/local/bin/fabric-net.sh <<'NET' \
+ && chmod +x /usr/local/bin/fabric-net.sh
+#!/bin/sh
+insmod /opt/mods/failover.ko 2>/dev/null
+insmod /opt/mods/net_failover.ko 2>/dev/null
+insmod /opt/mods/virtio_net.ko 2>/dev/null
+sleep 1
+IF=$(ls /sys/class/net | grep -Ev '^lo$' | head -1)
+[ -n "$IF" ] && ip addr add 10.0.2.15/24 dev "$IF" && ip link set "$IF" up && ip route add default via 10.0.2.2
+NET
+RUN cat > /etc/systemd/system/fabric-net.service <<'UNIT' \
+ && systemctl enable fabric-net.service
+[Unit]
+Description=Fabric OS guest network bring-up
+DefaultDependencies=no
+After=systemd-udevd.service
+Before=fabric-desktop.service network.target
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/fabric-net.sh
+[Install]
+WantedBy=multi-user.target
+UNIT

@@ -1,0 +1,14 @@
+[package]
+name = "libprovenance"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Append-only, hash-chained provenance graph for AI actions"
+
+[dependencies]
+libcrypto = { path = "../libcrypto" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

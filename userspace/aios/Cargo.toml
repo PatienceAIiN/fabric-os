@@ -1,0 +1,31 @@
+[package]
+name = "aios"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "ai-native-os control tool: agents, intents, governor, provenance, demos"
+
+[[bin]]
+name = "aios"
+path = "src/main.rs"
+
+[dependencies]
+libcapability = { path = "../../libraries/libcapability" }
+libcrypto = { path = "../../libraries/libcrypto" }
+libagent = { path = "../../libraries/libagent" }
+libintent = { path = "../../libraries/libintent" }
+libgovernor = { path = "../../libraries/libgovernor" }
+libprovenance = { path = "../../libraries/libprovenance" }
+libtransaction = { path = "../../libraries/libtransaction" }
+libcredentials = { path = "../../libraries/libcredentials" }
+libprovider = { path = "../../libraries/libprovider" }
+libbroker = { path = "../../libraries/libbroker" }
+libmodel = { path = "../../libraries/libmodel" }
+libsettings = { path = "../../libraries/libsettings" }
+libmemory = { path = "../../libraries/libmemory" }
+libresource = { path = "../../libraries/libresource" }
+libipc = { path = "../../libraries/libipc" }
+aiosd = { path = "../aiosd" }
+
+[lints.rust]
+unsafe_code = "forbid"

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ai-native-os — Lumen desktop (mockup)</title>
+<style>
+:root{
+ --bg:#0E1116;--surface:#161B22;--surfaceAlt:#1E242D;--text:#E6EAF0;--muted:#9AA4B2;
+ --border:#2A313B;--accent:#6E9BFF;--accentText:#0E1116;--success:#3FCB7E;--warn:#E0A64B;
+ --danger:#F0655D;--aiLocal:#3FCB7E;--aiCloud:#6E9BFF;
+ --r-md:10px;--r-lg:16px;--r-pill:999px;--sh2:0 4px 16px rgba(0,0,0,.12);--sh3:0 12px 40px rgba(0,0,0,.18);
+ --ui:system-ui,'Cantarell','Noto Sans',sans-serif;--mono:'JetBrains Mono','DejaVu Sans Mono',monospace;
+}
+:root[data-theme="light"]{
+ --bg:#F6F7F9;--surface:#FFFFFF;--surfaceAlt:#EDEFF3;--text:#1B1F27;--muted:#5B6472;
+ --border:#DDE1E8;--accent:#3B6EF5;--accentText:#fff;--success:#1F9D57;--warn:#B7791F;--danger:#C6362F;
+ --aiLocal:#1F9D57;--aiCloud:#3B6EF5;
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--ui);background:
+ radial-gradient(1200px 700px at 70% -10%, color-mix(in srgb,var(--accent) 22%, transparent), transparent 60%),
+ var(--bg);color:var(--text);height:100vh;overflow:hidden}
+.topbar{height:34px;display:flex;align-items:center;gap:16px;padding:0 14px;
+ background:color-mix(in srgb,var(--surface) 80%, transparent);backdrop-filter:blur(12px);
+ border-bottom:1px solid var(--border);font-size:13px}
+.topbar .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:var(--r-pill);
+ background:var(--surfaceAlt);border:1px solid var(--border);font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%}
+.stage{position:relative;height:calc(100vh - 34px)}
+.window{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+ box-shadow:var(--sh3);overflow:hidden}
+.win-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.tl{display:flex;gap:7px}.tl i{width:11px;height:11px;border-radius:50%;display:block}
+.tl .c{background:#F0655D}.tl .m{background:#E0A64B}.tl .g{background:#3FCB7E}
+.win-body{padding:14px;font-size:13.5px;line-height:1.5}
+.cmd{left:26%;top:70px;width:48%}
+.cmd input{width:100%;border:0;outline:0;background:var(--surfaceAlt);color:var(--text);
+ border-radius:var(--r-md);padding:14px 16px;font-size:16px;font-family:var(--ui)}
+.cmd .hint{color:var(--muted);font-size:12px;margin-top:10px}
+.act{right:24px;top:110px;width:340px}
+.row{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--border)}
+.row:last-child{border-bottom:0}
+.badge{font-size:11px;padding:1px 8px;border-radius:var(--r-pill);white-space:nowrap}
+.b-ok{background:color-mix(in srgb,var(--success) 22%,transparent);color:var(--success)}
+.b-warn{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.b-block{background:color-mix(in srgb,var(--danger) 22%,transparent);color:var(--danger)}
+.mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.mon{left:26px;top:150px;width:300px}
+.meter{height:8px;border-radius:var(--r-pill);background:var(--surfaceAlt);overflow:hidden;margin:4px 0 10px}
+.meter>span{display:block;height:100%;border-radius:var(--r-pill)}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;display:flex;gap:12px;
+ padding:10px 14px;background:color-mix(in srgb,var(--surface) 70%, transparent);backdrop-filter:blur(16px);
+ border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh2)}
+.dock b{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:600;
+ background:linear-gradient(160deg,var(--surfaceAlt),var(--surface));border:1px solid var(--border);font-size:18px}
+.dock b.ai{background:linear-gradient(160deg,var(--accent),color-mix(in srgb,var(--accent) 60%, #000));color:var(--accentText)}
+h4{margin:0 0 8px}
+.k{color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>◆ Lumen</strong>
+    <span class="k">Downloads — File Manager</span>
+    <span class="sp"></span>
+    <span class="chip"><span class="dot" style="background:var(--aiLocal)"></span> Local AI</span>
+    <span class="chip">⌘ Super+Space</span>
+    <span class="chip">100%</span>
+    <span class="chip">14:32</span>
+  </div>
+  <div class="stage">
+    <!-- Global AI command bar (M42/M15) -->
+    <div class="window cmd">
+      <div class="win-body">
+        <input value="Organize my Downloads folder" aria-label="Ask anything">
+        <div class="hint">Becomes Intent #123 · read 40,000 · modify 2,341 · delete 17 · <b>network 0</b> · <span style="color:var(--accent)">Approve</span> to run in a transaction (reversible)</div>
+      </div>
+    </div>
+
+    <!-- System monitor (M55) -->
+    <div class="window mon">
+      <div class="win-head"><span class="tl"><i class="c"></i><i class="m"></i><i class="g"></i></span> System Monitor</div>
+      <div class="win-body">
+        <div class="k">CPU · 12 threads</div><div class="meter"><span style="width:24%;background:var(--accent)"></span></div>
+        <div class="k">RAM · 7.6 GiB</div><div class="meter"><span style="width:75%;background:var(--warn)"></span></div>
+        <div class="k">GPU · Radeon</div><div class="meter"><span style="width:8%;background:var(--success)"></span></div>
+        <div class="mono">AI workloads: 1 local model · 0 cloud</div>
+      </div>
+    </div>
+
+    <!-- AI Activity Center (M16/M43) -->
+    <div class="window act">
+      <div class="win-head"><span class="tl"><i class="c"></i><i class="m"></i><i class="g"></i></span> AI Activity Center</div>
+      <div class="win-body">
+        <h4>Intent #123 · Organize Downloads</h4>
+        <div class="row"><span class="badge b-ok">allowed</span><div>Read /Downloads<br><span class="mono">fs.read · local</span></div></div>
+        <div class="row"><span class="badge b-ok">allowed</span><div>Move 2,341 files<br><span class="mono">fs.write · transaction</span></div></div>
+        <div class="row"><span class="badge b-warn">approval</span><div>Contact api.example.com<br><span class="mono">net.connect · risk High</span></div></div>
+        <div class="row"><span class="badge b-block">blocked</span><div>Upload to evil.com<br><span class="mono">not authorized by intent</span></div></div>
+        <div class="row"><span class="k">Provenance</span><div class="mono">4 events · chain valid ✓ · rollback available</div></div>
+      </div>
+    </div>
+
+    <div class="dock">
+      <b>🗂</b><b>⌨</b><b>⚙</b><b>◱</b><b class="ai">✦</b>
+    </div>
+  </div>
+</body>
+</html>

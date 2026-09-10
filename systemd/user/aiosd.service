@@ -1,0 +1,23 @@
+[Unit]
+Description=ai-native-os local AI service (system-wide AI)
+Documentation=man:aiosd
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/aiosd
+Restart=on-failure
+RestartSec=2
+# Sandbox the service (it holds the credential resolver; least privilege).
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%t/ai-native-os
+PrivateTmp=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# real local inference (edit paths as installed):
+Environment=AIOS_LLAMA_CLI=%h/.local/share/ai-native-os/llama-cli
+Environment=AIOS_LLAMA_MODEL=%h/.local/share/ai-native-os/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+
+[Install]
+WantedBy=default.target

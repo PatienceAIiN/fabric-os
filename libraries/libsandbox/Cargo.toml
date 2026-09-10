@@ -1,0 +1,12 @@
+[package]
+name = "libsandbox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Map capabilities onto Linux sandboxing (systemd-run + landlock/seccomp knobs)"
+
+[dependencies]
+libcapability = { path = "../libcapability" }
+
+[lints.rust]
+unsafe_code = "forbid"

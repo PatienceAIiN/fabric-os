@@ -1,0 +1,11 @@
+[package]
+name = "libcrypto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Zero-dependency SHA-256 and HMAC-SHA256 for provenance hashing and agent auth (prototype; ed25519 is the production path, see ADR-0008)"
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"

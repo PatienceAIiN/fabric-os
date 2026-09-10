@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fabric OS</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+:root{
+  --bg:#17131f;--surface:#1e1930;--surface2:#282138;--line:#372c4d;--text:#f0ecf7;--muted:#a99fc0;
+  --accent:#f26b3a;--accent2:#ffa14a;--accent3:#8a5cf6;--ok:#3fcb7e;--warn:#e0a64b;--danger:#f0655d;
+  --radius:12px;--fs:1;--ui:system-ui,'Cantarell','Segoe UI','Noto Sans',sans-serif;--mono:'JetBrains Mono','DejaVu Sans Mono',monospace;
+}
+[data-theme=light]{--bg:#eef0f5;--surface:#ffffff;--surface2:#eceaf4;--line:#dad5e6;--text:#241d33;--muted:#6a6280;}
+[data-theme=light] .topbar,[data-theme=light] .dock,[data-theme=light] .taskbar{background:rgba(255,255,255,.72)}
+[data-theme=light] .dockicon{background:linear-gradient(160deg,#efeaf7,#e5dff1)}
+[data-theme=light] .topbar .act:hover,[data-theme=light] .tray .ti:hover{background:rgba(0,0,0,.06)}
+[data-theme=light] .term{background:#f6f4fb}[data-theme=light] .termout{color:#3a3350}
+[data-theme=light] .edarea{background:#fbfaff;color:#241d33}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:var(--ui);color:var(--text);background:var(--bg);font-size:calc(15px*var(--fs));-webkit-font-smoothing:antialiased;user-select:none}
+button,input,select,textarea{font-family:inherit;font-size:1rem;color:var(--text);caret-color:var(--accent)}
+:root{color-scheme:dark}[data-theme=light]{color-scheme:light}
+option{background:var(--surface);color:var(--text)}
+select{color:var(--text)}
+[contenteditable]{caret-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+button{cursor:pointer;border:0;background:none}
+input,select,textarea{user-select:text}
+::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-thumb{background:#4a3d63;border-radius:8px;border:2px solid transparent;background-clip:content-box}::-webkit-scrollbar-thumb:hover{background:#5b4c78;background-clip:content-box}
+.ico{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;width:1.15em;height:1.15em;vertical-align:-.18em}
+.dockicon .ico,.litem .li .ico{width:24px;height:24px}
+.litem .li .ico{color:#fff}
+*{scrollbar-width:thin;scrollbar-color:#4a3d63 transparent}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes barGrow{from{width:0}to{width:100%}}@keyframes sheen{to{transform:translateX(100%)}}
+[data-rm=true] *{animation:none!important;transition:none!important}
+.hidden{display:none!important}
+
+/* wallpapers */
+#desktop.wp-aurora{background:linear-gradient(135deg,#1a1330,#2c1d44 45%,#221733,#17111f)}
+#desktop.wp-ember{background:radial-gradient(1200px 700px at 20% 20%,#3a1e18,#1a1114),linear-gradient(135deg,#2a1410,#160d12)}
+#desktop.wp-forest{background:linear-gradient(135deg,#0f2620,#123a2c 50%,#0d1f1a)}
+#desktop.wp-ocean{background:linear-gradient(135deg,#0d1b33,#123a55 50%,#0c1526)}
+#desktop.wp-mono{background:linear-gradient(135deg,#1a1a1f,#2a2a33 50%,#16161b)}
+#desktop.wp-rose{background:linear-gradient(135deg,#2c1526,#45203a 50%,#1f1020)}
+
+/* splash */
+#splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(1200px 700px at 50% 30%,#2a1e3e,#140f1c);transition:opacity .6s}
+.brand{display:flex;flex-direction:column;align-items:center;gap:16px;animation:riseIn .7s ease both}
+.mark{width:92px;height:92px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(145deg,var(--accent),var(--accent3));box-shadow:0 18px 60px rgba(242,107,58,.4);position:relative;overflow:hidden}
+.mark svg{width:54px;height:54px}.mark::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.25),transparent 70%);transform:translateX(-100%);animation:sheen 2.2s ease-in-out infinite}
+.brand h1{font-size:2.2rem;font-weight:700}.brand p{color:var(--muted);font-size:.9rem;letter-spacing:3px;text-transform:uppercase}
+.splashbar{width:220px;height:5px;border-radius:99px;background:#3a2e52;overflow:hidden;margin-top:6px}.splashbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:barGrow 2.2s ease forwards}
+
+/* login */
+#login{position:fixed;inset:0;z-index:190;display:none;place-items:center;background:linear-gradient(135deg,#1c1430,#2a1c40,#191325)}
+.card{width:360px;background:rgba(30,25,48,.9);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:20px;padding:30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:popIn .5s ease both}
+.card .mark{width:60px;height:60px;border-radius:16px;margin:0 auto 12px}.card .mark svg{width:36px;height:36px}
+.card h2{text-align:center;font-size:1.4rem}.card .sub{text-align:center;color:var(--muted);font-size:.85rem;margin:2px 0 20px}
+.field{margin-bottom:12px}.field label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:5px}
+.field input{width:100%;padding:11px 13px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);outline:none;transition:border .2s}.field input:focus{border-color:var(--accent)}
+.btn{width:100%;padding:11px;border-radius:10px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#20140c;transition:transform .12s,filter .2s}.btn:hover{filter:brightness(1.06)}.btn:active{transform:scale(.98)}
+.hint{text-align:center;color:var(--muted);font-size:.75rem;margin-top:12px}
+
+/* desktop chrome */
+#desktop{position:fixed;inset:0;display:none;flex-direction:column}
+.topbar{height:34px;display:flex;align-items:center;gap:12px;padding:0 12px;z-index:60;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.05);font-size:.82rem}
+.topbar .act{padding:3px 11px;border-radius:8px;transition:background .2s;display:flex;gap:6px;align-items:center}.topbar .act:hover{background:rgba(255,255,255,.09)}
+.topbar .sp{flex:1}.tray{display:flex;align-items:center;gap:4px}
+.tray .ti{padding:4px 8px;border-radius:8px;transition:background .2s;position:relative}.tray .ti:hover{background:rgba(255,255,255,.09)}
+.badge{position:absolute;top:1px;right:2px;min-width:15px;height:15px;font-size:.6rem;border-radius:99px;background:var(--danger);color:#fff;display:grid;place-items:center;padding:0 3px}
+.stage{flex:1;position:relative;overflow:hidden}
+.dock{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:8px;padding:10px 7px;background:rgba(20,15,28,.5);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.dockicon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.35rem;background:linear-gradient(160deg,#2c2440,#241d36);border:1px solid rgba(255,255,255,.05);transition:transform .16s,box-shadow .2s;position:relative}
+.dockicon:hover{transform:scale(1.13) translateX(3px);box-shadow:0 8px 22px rgba(0,0,0,.4)}.dockicon.run::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.dockicon .tip{position:absolute;left:56px;white-space:nowrap;background:#000c;padding:3px 9px;border-radius:7px;font-size:.75rem;opacity:0;pointer-events:none;transition:opacity .15s;z-index:5}.dockicon:hover .tip{opacity:1}
+.taskbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:40;display:flex;gap:6px;padding:5px;background:rgba(20,15,28,.55);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:12px;max-width:80%;overflow:auto}
+.taskbar:empty{display:none}.tbtn{display:flex;gap:6px;align-items:center;padding:5px 11px;border-radius:8px;font-size:.78rem;background:rgba(255,255,255,.05);transition:background .2s;white-space:nowrap}.tbtn:hover{background:rgba(255,255,255,.12)}.tbtn.active{background:var(--accent);color:#20140c}
+
+/* windows */
+.win{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;min-width:320px;min-height:200px;animation:popIn .18s ease both}
+.win.max{border-radius:0}
+.winhead{height:42px;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:0 8px 0 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--surface2),var(--surface));cursor:default}
+.winhead .ic{font-size:1rem}.winhead .t{font-weight:600;font-size:.85rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--muted);transition:background .18s,color .18s;font-size:.8rem}
+.wbtn:hover{background:rgba(255,255,255,.1);color:var(--text)}.wbtn.close:hover{background:var(--danger);color:#fff}
+.winbody{flex:1;overflow:auto;position:relative}
+.rz{position:absolute;z-index:2}.rz-r{top:0;right:-3px;width:8px;height:100%;cursor:ew-resize}.rz-b{left:0;bottom:-3px;height:8px;width:100%;cursor:ns-resize}.rz-br{right:-3px;bottom:-3px;width:14px;height:14px;cursor:nwse-resize}.rz-l{top:0;left:-3px;width:8px;height:100%;cursor:ew-resize}
+.snap-prev{position:absolute;z-index:39;background:rgba(242,107,58,.2);border:2px solid var(--accent);border-radius:12px;pointer-events:none;transition:all .1s}
+
+/* generic content */
+.pad{padding:16px}h3{font-size:1.05rem;margin-bottom:6px}.sub2{color:var(--muted);font-size:.82rem;margin-bottom:14px}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.inp{display:flex;flex-direction:column;gap:4px}.inp label{font-size:.72rem;color:var(--muted)}
+.inp input,.inp select,.field2 input{padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);outline:none;min-width:130px;transition:border .2s}.inp input:focus,.inp select:focus{border-color:var(--accent)}
+.mini{padding:8px 14px;border-radius:8px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#20140c;transition:transform .12s,filter .2s}.mini:hover{filter:brightness(1.05)}.mini:active{transform:scale(.97)}
+.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line)}.ghost:hover{background:var(--line)}
+.dng{background:linear-gradient(135deg,#c6362f,#f0655d);color:#fff}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}.tbl th{text-align:left;color:var(--muted);font-weight:500;padding:7px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)}.tbl tr:hover td{background:rgba(255,255,255,.03)}
+.tag{font-size:.68rem;padding:2px 8px;border-radius:99px;white-space:nowrap}.t-ok{background:rgba(63,203,126,.18);color:var(--ok)}.t-warn{background:rgba(224,166,75,.18);color:var(--warn)}.t-bad{background:rgba(240,101,93,.18);color:var(--danger)}.t-mut{background:rgba(255,255,255,.08);color:var(--muted)}
+.link{color:var(--accent2);cursor:pointer}.link:hover{text-decoration:underline}.dl{color:var(--danger);cursor:pointer}.dl:hover{text-decoration:underline}
+.code{font-family:var(--mono);font-size:.78rem;color:var(--muted)}.empty{color:var(--muted);text-align:center;padding:34px;font-size:.85rem}
+.meter{height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:5px 0 12px}.meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+.spinner{width:15px;height:15px;border:2px solid #4a3d63;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{font-size:.76rem;padding:6px 11px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);transition:background .2s}.chip:hover{background:var(--accent);color:#20140c}
+
+/* files */
+.fbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:2}
+.crumb{flex:1;display:flex;gap:2px;align-items:center;font-size:.82rem;overflow:hidden}.crumb span{padding:3px 6px;border-radius:6px;cursor:pointer}.crumb span:hover{background:var(--surface2)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;padding:12px}
+.fitem{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:10px;cursor:default;transition:background .15s;text-align:center}
+.fitem:hover{background:rgba(255,255,255,.05)}.fitem.sel{background:rgba(242,107,58,.18);outline:1px solid var(--accent)}
+.fitem .fi{font-size:2rem}.fitem .fn{font-size:.74rem;word-break:break-word;line-height:1.2;max-height:2.4em;overflow:hidden}
+
+/* terminal */
+.term{height:100%;display:flex;flex-direction:column;background:#120e1a;font-family:var(--mono);font-size:.82rem}
+.termout{flex:1;overflow:auto;padding:10px 12px;white-space:pre-wrap;line-height:1.4;color:#d7cff0}
+.terminp{display:flex;align-items:center;gap:6px;padding:7px 12px;border-top:1px solid var(--line)}.terminp .ps{color:var(--accent2)}.terminp input{flex:1;background:none;border:0;outline:none;color:#fff;font-family:var(--mono)}
+
+/* editor */
+.edwrap{height:100%;display:flex;flex-direction:column}.edbar{display:flex;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line)}
+.edarea{flex:1;width:100%;background:#141020;color:#e6e0f5;border:0;outline:none;padding:14px;font-family:var(--mono);font-size:.85rem;line-height:1.5;resize:none}
+
+/* launcher */
+#launcher{position:absolute;inset:0;z-index:70;display:none;flex-direction:column;align-items:center;padding-top:8vh;background:rgba(15,11,22,.7);backdrop-filter:blur(20px);animation:fadeIn .18s}
+#launcher input{width:min(520px,80%);padding:14px 18px;border-radius:14px;background:rgba(40,33,56,.9);border:1px solid var(--line);outline:none;font-size:1.05rem;margin-bottom:26px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,110px);gap:14px;width:min(760px,90%);justify-content:center}
+.litem{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:14px;cursor:pointer;transition:background .15s,transform .15s}.litem:hover{background:rgba(255,255,255,.08);transform:translateY(-2px)}
+.litem .li{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.6rem;background:linear-gradient(160deg,var(--accent),var(--accent3))}.litem .ln{font-size:.78rem}
+
+/* context menu */
+.ctx{position:absolute;z-index:120;min-width:180px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,.5);padding:5px;animation:popIn .12s}
+.ctx button{display:flex;width:100%;gap:10px;align-items:center;padding:8px 12px;border-radius:7px;font-size:.82rem;text-align:left}.ctx button:hover{background:var(--accent);color:#20140c}.ctx .sep{height:1px;background:var(--line);margin:4px 6px}.ctx button.dngtxt{color:var(--danger)}.ctx button.dngtxt:hover{background:var(--danger);color:#fff}
+
+/* panels: notifications */
+#notif{position:absolute;top:38px;right:8px;width:340px;max-height:70vh;z-index:80;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden;animation:popIn .16s}
+#notif .nh{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}.nh h4{flex:1;font-size:.95rem}
+.nlist{overflow:auto;padding:8px}.ncard{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;position:relative}.ncard.unread{border-left:3px solid var(--accent)}
+.ncard .nt{font-size:.85rem;font-weight:600;margin-bottom:2px}.ncard .nb{font-size:.78rem;color:var(--muted)}.ncard .nx{position:absolute;top:8px;right:8px;color:var(--muted);cursor:pointer;font-size:.75rem}
+
+#setup{position:fixed;inset:0;z-index:195;display:none;place-items:center;background:linear-gradient(135deg,#17111f,#241a33,#191325)}
+.sucard{width:440px;max-width:92%;background:rgba(30,25,48,.92);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:22px;padding:34px 32px;box-shadow:0 30px 90px rgba(0,0,0,.55);animation:popIn .4s ease both}
+.sucard h2{font-size:1.35rem}.sucenter{text-align:center}
+.subtn{display:flex;justify-content:space-between;margin-top:22px}
+.sudots{display:flex;gap:7px;justify-content:center;margin-top:22px}.sudot{width:8px;height:8px;border-radius:50%;background:var(--line)}.sudot.on{background:var(--accent);width:22px;border-radius:99px;transition:all .2s}
+#setup .field input{width:100%;padding:11px 13px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none}
+#setup .mark{width:76px;height:76px}
+/* dialog + toast */
+#modal{position:absolute;inset:0;z-index:150;display:none;place-items:center;background:rgba(10,7,16,.55)}
+.dlg{width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:popIn .18s}
+.dlg h4{font-size:1.05rem;margin-bottom:8px}.dlg p{color:var(--muted);font-size:.85rem;margin-bottom:14px;white-space:pre-wrap}
+.dlg input{width:100%;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);outline:none;margin-bottom:14px}
+.dlg .btns{display:flex;gap:9px;justify-content:flex-end}
+.toast{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:160;background:#000d;border:1px solid var(--line);padding:11px 18px;border-radius:11px;font-size:.82rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+/* settings nav */
+.setwrap{display:flex;height:100%}.setnav{width:172px;flex:0 0 auto;border-right:1px solid var(--line);overflow:auto;padding:8px}
+.setnav button{display:flex;width:100%;gap:9px;padding:8px 11px;border-radius:8px;font-size:.82rem;text-align:left;color:var(--muted);transition:background .15s,color .15s}.setnav button:hover{background:var(--surface2);color:var(--text)}.setnav button.on{background:var(--accent);color:#20140c;font-weight:600}
+.setbody{flex:1;overflow:auto;padding:18px}
+.swatch{width:30px;height:30px;border-radius:8px;cursor:pointer;border:2px solid transparent}.swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.wp{width:76px;height:48px;border-radius:9px;cursor:pointer;border:2px solid transparent}.wp.on{border-color:var(--accent)}
+.togg{width:42px;height:24px;border-radius:99px;background:var(--surface2);position:relative;transition:background .2s;cursor:pointer;flex:0 0 auto}.togg.on{background:var(--accent)}.togg::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}.togg.on::after{left:20px}
+.setrow{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}.setrow .lbl{flex:1}.setrow .lbl .d{font-size:.75rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="splash"><div class="brand"><div class="mark"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-width="4" transform="rotate(-24 32 32)"/><rect x="23" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 25 32)"/><rect x="30" y="22" width="4" height="20" rx="2" fill="#fff" transform="rotate(-24 32 32)"/><rect x="37" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 39 32)"/></svg></div><h1>Fabric OS</h1><p>AI-native · secure · local-first</p><div class="splashbar"><i></i></div></div></div>
+
+<div id="login"><form class="card" onsubmit="doLogin(event)">
+  <div class="mark"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-width="4" transform="rotate(-24 32 32)"/><rect x="23" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 25 32)"/><rect x="30" y="22" width="4" height="20" rx="2" fill="#fff" transform="rotate(-24 32 32)"/><rect x="37" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 39 32)"/></svg></div>
+  <h2>Welcome to Fabric OS</h2><div class="sub">Sign in to your workspace</div>
+  <div id="uswitch" style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:14px"></div>
+  <div class="field"><label>Username</label><input id="u" value="admin"></div>
+  <div class="field"><label>Password</label><input id="p" type="password" value="fabric"></div>
+  <button class="btn" type="submit">Sign in</button>
+  <div class="hint"><span id="lh">Default: admin / fabric</span> · <span class="link" onclick="forgotPw()">Forgot password?</span></div>
+</form></div>
+<div id="setup"><div class="sucard"><div id="suBody"></div><div id="suDots" class="sudots"></div></div></div>
+
+<div id="desktop" class="wp-aurora">
+  <div class="topbar">
+    <button class="act" id="tbAct" onclick="openLauncher()">Activities</button>
+    <button class="act" onclick="app('files')">Files</button>
+    <button class="act" onclick="app('terminal')">Terminal</button>
+    <div class="sp"></div><span style="font-weight:600" id="wsname">Workspace 1</span><div class="sp"></div>
+    <div class="tray">
+      <span class="ti" title="Local AI"><span style="color:var(--ok)">●</span> AI</span>
+      <span class="ti" id="netTray" title="Network" onclick="app('settings','network')"></span>
+      <span class="ti" id="notifBtn" title="Notifications" onclick="toggleNotif()"><span id="tbBell"></span><span class="badge hidden" id="nbadge">0</span></span>
+      <span id="clock"></span>
+      <span class="ti" id="tbUser" title="Session" onclick="userMenu(event)"></span>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="dock" id="dock"></div>
+    <div id="wins"></div>
+    <div class="taskbar" id="taskbar"></div>
+    <div id="launcher"><input id="lsearch" placeholder="Search applications…" oninput="renderLauncher()" onkeydown="launcherKey(event)"><div class="lgrid" id="lgrid"></div></div>
+    <div id="notif"><div class="nh"><h4>Notifications</h4><button class="link" onclick="clearNotif()">Clear all</button></div><div class="nlist" id="nlist"></div></div>
+  </div>
+</div>
+<div id="modal"></div><div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), ce=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e;};
+let TOKEN=null, SET={}, WS=[], CURWS=0;
+async function api(path,method="GET",body){const h={"Content-Type":"application/json"};if(TOKEN)h.Authorization="Bearer "+TOKEN;
+  const r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw(j.error||("HTTP "+r.status));return j;}
+
+const ICONS={
+ files:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+ terminal:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/>',
+ editor:'<path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+ assistant:'<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>',
+ processes:'<path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/>',
+ monitor:'<path d="M4 19V5M4 19h16"/><path d="M4 15l4-4 4 3 5-7"/>',
+ sysinfo:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L14 3h-4l-.8 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1L10 21h4l.8-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z"/>',
+ trash:'<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>',
+ clipboard:'<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+ writer:'<path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5M8 13h8M8 17h5"/>',
+ governor:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+ agents:'<circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+ intents:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+ network:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16"/>',
+ storage:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3"/>',
+ users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/>',
+ display:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+ battery:'<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3"/>',
+ datetime:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+ power:'<path d="M12 4v8"/><path d="M7 7a7 7 0 1 0 10 0"/>',
+ wallpaper:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M4 17l5-4 4 3 3-2 4 3"/>',
+ search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
+ folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+ file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+ image:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M4 17l5-4 4 3 3-2 4 3"/>',
+ activities:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+ bell:'<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+ close:'<path d="M6 6l12 12M18 6L6 18"/>',
+};
+function ic(n,sz){return `<svg class="ico" viewBox="0 0 24 24" style="${sz?`width:${sz}px;height:${sz}px`:''}">${ICONS[n]||ICONS.file}</svg>`;}
+
+const VERSION="Fabric OS 0.2.0-fabric";
+const LOGOSVG='<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-width="4" transform="rotate(-24 32 32)"/><rect x="23" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 25 32)"/><rect x="30" y="22" width="4" height="20" rx="2" fill="#fff" transform="rotate(-24 32 32)"/><rect x="37" y="25" width="4" height="14" rx="2" fill="#fff" transform="rotate(-24 39 32)"/></svg>';
+let ERR_SENT=0;
+async function reportError(msg,detail){if(!TOKEN)return;if(ERR_SENT++>5)return;try{await api("/api/error-report","POST",{type:"auto",subject:"runtime error",message:String(msg).slice(0,200),detail:String(detail||"").slice(0,1000)});}catch(e){}}
+window.addEventListener("error",e=>reportError(e.message,(e.error&&e.error.stack)||e.filename+":"+e.lineno));
+window.addEventListener("unhandledrejection",e=>reportError("unhandledrejection",e.reason));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2400);}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function human(n){n=+n||0;const u=["B","KB","MB","GB","TB"];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++;}return n.toFixed(i?1:0)+" "+u[i];}
+function ago(ts){const s=Math.max(0,Math.floor(Date.now()/1000)-ts);if(s<60)return s+"s";if(s<3600)return(s/60|0)+"m";if(s<86400)return(s/3600|0)+"h";return(s/86400|0)+"d";}
+
+/* boot */
+window.addEventListener("load",()=>{
+  const auto=location.hash.slice(1);
+  setTimeout(()=>{$("#splash").style.opacity=0;setTimeout(async()=>{$("#splash").classList.add("hidden");
+    if(auto){try{const j=await api("/api/login","POST",{username:"admin",password:"fabric"});TOKEN=j.token;await enterDesktop();const a=auto.split(":");app(a[0],a[1]);return;}catch(e){}}
+    maybeSetup();},600);},auto?250:2000);
+  setInterval(()=>{$("#clock").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});},1000);
+});
+async function doLogin(e){e.preventDefault();try{const j=await api("/api/login","POST",{username:$("#u").value,password:$("#p").value});TOKEN=j.token;$("#login").style.display="none";await enterDesktop();}catch(err){$("#lh").textContent="✗ "+err;$("#lh").style.color="var(--danger)";}}
+async function enterDesktop(){$("#desktop").style.display="flex";SET=await api("/api/settings").catch(()=>({}));applySettings();buildDock();$("#tbAct").innerHTML=ic("activities")+" Activities";$("#tbBell").innerHTML=ic("bell");$("#netTray").innerHTML=ic("network");$("#tbUser").innerHTML=ic("users");
+  try{WS=(await api("/api/workspaces")).items;}catch(e){WS=["Workspace 1"];}$("#wsname").textContent=WS[CURWS]||"Workspace 1";
+  refreshNotif();setInterval(refreshNotif,15000);app("files");}
+function logout(){api("/api/logout","POST").catch(()=>{});TOKEN=null;location.reload();}
+
+/* settings apply */
+function applySettings(){const r=document.documentElement;
+  r.setAttribute("data-theme",SET.theme==="light"?"light":"dark");
+  r.setAttribute("data-rm",SET.reduce_motion?"true":"false");
+  r.style.setProperty("--accent",SET.accent||"#f26b3a");
+  r.style.setProperty("--fs",SET.font_scale||1);
+  const dk=$("#desktop");
+  if((SET.wallpaper||"aurora")==="custom"){dk.className="";api("/api/wallpaper").then(w=>{if(w.data)dk.style.backgroundImage=`url(${w.data})`;dk.style.backgroundSize="cover";dk.style.backgroundPosition="center";}).catch(()=>{});}
+  else{dk.style.backgroundImage="";dk.className="wp-"+(SET.wallpaper||"aurora");}}
+async function saveSet(patch){Object.assign(SET,patch);applySettings();try{await api("/api/settings","PUT",patch);}catch(e){}}
+
+/* ---------------- Window Manager ---------------- */
+let WIN={}, ZTOP=10, WID=0;
+const APPS={
+  files:{name:"Files",icon:"files",w:720,h:480},
+  software:{name:"Software",icon:"storage",w:720,h:520},
+  terminal:{name:"Terminal",icon:"terminal",w:640,h:420},
+  editor:{name:"Text Editor",icon:"editor",w:640,h:480},
+  writer:{name:"Writer",icon:"writer",w:720,h:520},
+  mail:{name:"Mail",icon:"mail",w:680,h:520},
+  processes:{name:"Processes",icon:"processes",w:680,h:480},
+  monitor:{name:"System Monitor",icon:"monitor",w:560,h:460},
+  sysinfo:{name:"System Info",icon:"sysinfo",w:460,h:440},
+  settings:{name:"Settings",icon:"settings",w:760,h:520},
+  trash:{name:"Trash",icon:"trash",w:520,h:400},
+  assistant:{name:"AI Assistant",icon:"assistant",w:640,h:500},
+  governor:{name:"Governor",icon:"governor",w:640,h:460},
+  agents:{name:"Agents",icon:"agents",w:680,h:440},
+  intents:{name:"Intents",icon:"intents",w:720,h:440},
+  clipboard:{name:"Clipboard",icon:"clipboard",w:460,h:440},
+};
+const DOCK=["files","terminal","writer","mail","software","assistant","processes","monitor","settings","trash"];
+function buildDock(){$("#dock").innerHTML=DOCK.map(id=>`<button class="dockicon" id="dk-${id}" onclick="app('${id}')">${ic(APPS[id].icon)}<span class="tip">${APPS[id].name}</span></button>`).join("");}
+function app(id,arg){ // focus if open, else open
+  const ex=Object.values(WIN).find(w=>w.app===id&&w.ws===CURWS);
+  if(ex){if(ex.min)restoreWin(ex.id);focusWin(ex.id);if(arg&&ex.onarg)ex.onarg(arg);return;}
+  openWindow(id,arg);}
+function openWindow(id,arg){const def=APPS[id];const wid=++WID;
+  const st=$("#stage").getBoundingClientRect();
+  let w=Math.min(def.w,st.width-40),h=Math.min(def.h,st.height-80);
+  let x=40+((wid*28)%160),y=30+((wid*24)%120);
+  const el=ce("div","win");el.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${++ZTOP}`;
+  el.innerHTML=`<div class="winhead"><span class="ic">${ic(def.icon)}</span><span class="t">${def.name}</span>
+    <button class="wbtn" title="Minimize" onclick="minWin(${wid})">—</button>
+    <button class="wbtn" title="Maximize" onclick="maxWin(${wid})">▢</button>
+    <button class="wbtn close" title="Close" onclick="closeWin(${wid})">✕</button></div>
+    <div class="winbody" id="wb${wid}"></div>
+    <div class="rz rz-r"></div><div class="rz rz-b"></div><div class="rz rz-l"></div><div class="rz rz-br"></div>`;
+  $("#wins").appendChild(el);
+  const o={id:wid,app:id,el,ws:CURWS,min:false,max:false};WIN[wid]=o;
+  el.addEventListener("mousedown",()=>focusWin(wid));
+  dragify(el.querySelector(".winhead"),o);
+  el.querySelector(".rz-r").addEventListener("mousedown",e=>resizeWin(e,o,"r"));
+  el.querySelector(".rz-b").addEventListener("mousedown",e=>resizeWin(e,o,"b"));
+  el.querySelector(".rz-l").addEventListener("mousedown",e=>resizeWin(e,o,"l"));
+  el.querySelector(".rz-br").addEventListener("mousedown",e=>resizeWin(e,o,"br"));
+  el.querySelector(".winhead").addEventListener("dblclick",()=>maxWin(wid));
+  focusWin(wid);renderTaskbar();markDock();
+  APP_RENDER[id]($("#wb"+wid),o,arg);
+}
+function focusWin(id){const o=WIN[id];if(!o)return;o.el.style.zIndex=++ZTOP;Object.values(WIN).forEach(w=>w.el.classList.remove("focused"));renderTaskbar();}
+function closeWin(id){const o=WIN[id];if(!o)return;if(o.cleanup)o.cleanup();o.el.style.animation="popIn .15s reverse both";setTimeout(()=>{o.el.remove();delete WIN[id];renderTaskbar();markDock();},140);}
+function minWin(id){const o=WIN[id];o.min=true;o.el.classList.add("hidden");renderTaskbar();}
+function restoreWin(id){const o=WIN[id];o.min=false;o.el.classList.remove("hidden");focusWin(id);renderTaskbar();}
+function maxWin(id){const o=WIN[id];const st=$("#stage").getBoundingClientRect();
+  if(o.max){o.el.style.cssText=o.prev;o.max=false;o.el.classList.remove("max");}
+  else{o.prev=o.el.style.cssText;o.el.classList.add("max");o.el.style.cssText=`left:0;top:0;width:${st.width}px;height:${st.height-16}px;z-index:${++ZTOP}`;o.max=true;}}
+function dragify(handle,o){handle.addEventListener("mousedown",e=>{if(e.target.classList.contains("wbtn"))return;if(o.max)return;
+  focusWin(o.id);const r=o.el.getBoundingClientRect(),st=$("#stage").getBoundingClientRect();
+  const ox=e.clientX-r.left,oy=e.clientY-r.top;let snap=null;const prev=ce("div","snap-prev");
+  function mv(e){let nx=e.clientX-st.left-ox,ny=e.clientY-st.top-oy;o.el.style.left=nx+"px";o.el.style.top=Math.max(0,ny)+"px";
+    // snap zones
+    snap=null;prev.remove();const m=12;
+    if(e.clientX-st.left<m)snap={l:0,t:0,w:st.width/2,h:st.height-16};
+    else if(st.right-e.clientX<m)snap={l:st.width/2,t:0,w:st.width/2,h:st.height-16};
+    else if(e.clientY-st.top<m)snap={l:0,t:0,w:st.width,h:st.height-16};
+    if(snap){prev.style.cssText=`left:${snap.l}px;top:${snap.t}px;width:${snap.w}px;height:${snap.h}px`;$("#stage").appendChild(prev);}}
+  function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);prev.remove();
+    if(snap){o.el.style.left=snap.l+"px";o.el.style.top=snap.t+"px";o.el.style.width=snap.w+"px";o.el.style.height=snap.h+"px";}}
+  document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);});}
+function resizeWin(e,o,dir){e.preventDefault();focusWin(o.id);const r=o.el.getBoundingClientRect();const sx=e.clientX,sy=e.clientY,sw=r.width,sh=r.height,sl=o.el.offsetLeft;
+  function mv(e){if(dir.includes("r"))o.el.style.width=Math.max(320,sw+e.clientX-sx)+"px";if(dir.includes("b"))o.el.style.height=Math.max(200,sh+e.clientY-sy)+"px";
+    if(dir==="l"){const nw=Math.max(320,sw-(e.clientX-sx));o.el.style.width=nw+"px";o.el.style.left=(sl+(sw-nw))+"px";}}
+  function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);}
+  document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);}
+function renderTaskbar(){const tb=$("#taskbar");tb.innerHTML=Object.values(WIN).filter(w=>w.ws===CURWS).map(w=>`<button class="tbtn ${w.min?'':'active'}" onclick="taskClick(${w.id})">${ic(APPS[w.app].icon)} ${APPS[w.app].name}</button>`).join("");}
+function taskClick(id){const o=WIN[id];if(o.min)restoreWin(id);else if(+o.el.style.zIndex>=ZTOP)minWin(id);else focusWin(id);}
+function markDock(){DOCK.forEach(id=>{const d=$("#dk-"+id);if(d)d.classList.toggle("run",Object.values(WIN).some(w=>w.app===id));});}
+
+/* launcher */
+function openLauncher(){$("#launcher").style.display="flex";$("#lsearch").value="";renderLauncher();$("#lsearch").focus();}
+function closeLauncher(){$("#launcher").style.display="none";}
+function renderLauncher(){const q=($("#lsearch").value||"").toLowerCase();
+  $("#lgrid").innerHTML=Object.entries(APPS).filter(([id,a])=>a.name.toLowerCase().includes(q)).map(([id,a])=>
+    `<div class="litem" onclick="closeLauncher();app('${id}')"><div class="li">${ic(a.icon,26)}</div><div class="ln">${a.name}</div></div>`).join("");}
+function launcherKey(e){if(e.key==="Escape")closeLauncher();if(e.key==="Enter"){const f=$("#lgrid").firstElementChild;if(f)f.click();}}
+
+/* notifications */
+async function refreshNotif(){try{const j=await api("/api/notifications");const un=j.items.filter(n=>!n.read).length;
+  const b=$("#nbadge");if(un>0){b.textContent=un;b.classList.remove("hidden");}else b.classList.add("hidden");
+  $("#nlist").innerHTML=j.items.length?j.items.map(n=>`<div class="ncard ${n.read?'':'unread'}"><span class="nx" onclick="delNotif('${n.id}')">✕</span><div class="nt">${esc(n.title)}</div><div class="nb">${esc(n.body)} · ${ago(n.ts)}</div></div>`).join(""):'<div class="empty">No notifications</div>';}catch(e){}}
+function toggleNotif(){const n=$("#notif");n.style.display=n.style.display==="flex"?"none":"flex";if(n.style.display==="flex"){refreshNotif();api("/api/notifications").then(j=>j.items.filter(x=>!x.read).forEach(x=>api("/api/notifications/"+x.id,"POST")));setTimeout(refreshNotif,300);}}
+async function delNotif(id){await api("/api/notifications/"+id,"DELETE");refreshNotif();}
+async function clearNotif(){await api("/api/notifications","DELETE");refreshNotif();}
+async function notify(title,body){try{await api("/api/notifications","POST",{title,body});refreshNotif();}catch(e){}}
+
+/* user menu + context + dialogs */
+function userMenu(e){ctxMenu(e.clientX-140,36,[["⚙ Settings",()=>app("settings")],["🗑 Trash",()=>app("trash")],"sep",["🔒 Lock",()=>location.reload()],["⏻ Sign out",logout]]);}
+function ctxMenu(x,y,items){closeCtx();const m=ce("div","ctx");m.style.left=x+"px";m.style.top=y+"px";
+  items.forEach(it=>{if(it==="sep"){m.appendChild(ce("div","sep"));return;}const b=ce("button");if(it[2])b.className="dngtxt";b.textContent=it[0];b.onclick=()=>{closeCtx();it[1]();};m.appendChild(b);});
+  $("#stage").appendChild(m);const r=m.getBoundingClientRect(),sr=$("#stage").getBoundingClientRect();if(r.right>sr.right)m.style.left=(x-r.width)+"px";}
+function closeCtx(){document.querySelectorAll(".ctx").forEach(c=>c.remove());}
+document.addEventListener("click",e=>{if(!e.target.closest(".ctx"))closeCtx();if(!e.target.closest("#notif")&&!e.target.closest("#notifBtn"))$("#notif").style.display="none";});
+$("#stage").addEventListener("contextmenu",e=>{if(e.target.closest(".win"))return;e.preventDefault();
+  ctxMenu(e.offsetX,e.offsetY,[["🗂 Open Files",()=>app("files")],["⌨ Open Terminal",()=>app("terminal")],"sep",["🖼 Change wallpaper",()=>app("settings","appearance")],["🖥 Display settings",()=>app("settings","display")]]);});
+function dialog(title,msg,{input,ok="OK",danger}={}){return new Promise(res=>{const m=$("#modal");m.style.display="grid";
+  m.innerHTML=`<div class="dlg"><h4>${esc(title)}</h4><p>${esc(msg||"")}</p>${input!==undefined?`<input id="dlgi" value="${esc(input)}">`:""}<div class="btns"><button class="mini ghost" id="dc">Cancel</button><button class="mini ${danger?'dng':''}" id="dok">${ok}</button></div></div>`;
+  const close=v=>{m.style.display="none";m.innerHTML="";res(v);};$("#dc").onclick=()=>close(null);
+  $("#dok").onclick=()=>close(input!==undefined?$("#dlgi").value:true);if(input!==undefined){const i=$("#dlgi");i.focus();i.select();i.onkeydown=e=>{if(e.key==="Enter")close(i.value);};}});}
+
+/* keyboard shortcuts */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Meta"||(e.key===" "&&e.metaKey)){e.preventDefault();$("#launcher").style.display==="flex"?closeLauncher():openLauncher();return;}
+  if(e.metaKey&&e.key.toLowerCase()==="e"){e.preventDefault();app("files");}
+  if(e.metaKey&&e.key.toLowerCase()==="d"){e.preventDefault();Object.values(WIN).forEach(w=>w.el.classList.toggle("hidden"));}
+  if(e.metaKey&&e.key.toLowerCase()==="l"){e.preventDefault();location.reload();}
+  if(e.key==="Escape"){closeLauncher();closeCtx();}
+});
+
+/* =================== APPS =================== */
+const APP_RENDER={};
+
+/* Files */
+APP_RENDER.files=(wb,o,arg)=>{o.cwd=arg||"/";o.clip=null;
+  wb.innerHTML=`<div class="fbar"><button class="wbtn" title="Up" onclick="filesUp(${o.id})">↑</button><div class="crumb" id="cr${o.id}"></div>
+    <input id="fsr${o.id}" placeholder="Search…" style="width:120px;padding:6px 9px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);outline:none" onkeydown="if(event.key==='Enter')filesSearch(${o.id})">
+    <button class="mini ghost" onclick="filesNew(${o.id},'dir')">+ Folder</button><button class="mini ghost" onclick="filesNew(${o.id},'file')">+ File</button></div>
+    <div class="fgrid" id="fg${o.id}"></div>`;
+  wb.querySelector(".fgrid").addEventListener("contextmenu",e=>{if(e.target.closest(".fitem"))return;e.preventDefault();
+    ctxWin(o,e,[["+ New Folder",()=>filesNew(o.id,"dir")],["+ New File",()=>filesNew(o.id,"file")],...(o.clip?[["📋 Paste",()=>filesPaste(o.id)]]:[]),"sep",["⟳ Refresh",()=>filesLoad(o.id)]]);});
+  o.onarg=a=>{o.cwd=a;filesLoad(o.id);};filesLoad(o.id);};
+async function filesLoad(id){const o=WIN[id];try{const j=await api("/api/fs/list","POST",{path:o.cwd});o.cwd=j.path;
+  const parts=o.cwd.split("/").filter(Boolean);let acc="";
+  $("#cr"+id).innerHTML=`<span onclick="filesGo(${id},'/')">🏠</span>`+parts.map(p=>{acc+="/"+p;const a=acc;return `<span onclick="filesGo(${id},'${a}')">${esc(p)}</span>`;}).join('<span style="color:var(--muted)">/</span>');
+  const g=$("#fg"+id);g.innerHTML=j.items.length?"":'<div class="empty">Empty folder — right-click to create files</div>';
+  j.items.forEach(it=>{const el=ce("div","fitem");el.innerHTML=`<div class="fi" style="color:var(--accent2)">${fileIcon(it)}</div><div class="fn">${esc(it.name)}</div>`;
+    el.ondblclick=()=>filesOpen(id,it);el.oncontextmenu=e=>{e.preventDefault();fileMenu(o,e,it);};
+    el.onclick=()=>{g.querySelectorAll(".fitem").forEach(f=>f.classList.remove("sel"));el.classList.add("sel");o.sel=it;};g.appendChild(el);});
+}catch(e){toast(e);}}
+function fileIcon(it){if(it.dir)return ic("folder",30);const e=it.ext;if(["png","jpg","jpeg","gif","svg","webp"].includes(e))return ic("image",30);return ic("file",30);}
+function filesGo(id,p){WIN[id].cwd=p;filesLoad(id);}
+function filesUp(id){const o=WIN[id];const p=o.cwd.replace(/\/[^/]+\/?$/,"")||"/";o.cwd=p;filesLoad(id);}
+function filesOpen(id,it){const o=WIN[id];if(it.dir){o.cwd=it.path;filesLoad(id);return;}
+  if(["png","jpg","jpeg","gif","svg","webp"].includes(it.ext))return openImage(it);
+  app("editor");setTimeout(()=>{const ed=Object.values(WIN).find(w=>w.app==="editor");if(ed&&ed.openFile)ed.openFile(it.path);},60);}
+async function filesNew(id,kind){const o=WIN[id];const name=await dialog(kind==="dir"?"New Folder":"New File","Name:",{input:kind==="dir"?"New Folder":"untitled.txt",ok:"Create"});if(!name)return;
+  const path=(o.cwd==="/"?"":o.cwd)+"/"+name;try{if(kind==="dir")await api("/api/fs/mkdir","POST",{path});else await api("/api/fs/write","POST",{path,content:""});filesLoad(id);}catch(e){toast(e);}}
+function fileMenu(o,e,it){ctxWin(o,e,[["Open",()=>filesOpen(o.id,it)],["Rename",()=>filesRename(o.id,it)],["Copy",()=>{o.clip={op:"copy",it};toast("Copied "+it.name);}],["Cut",()=>{o.clip={op:"cut",it};toast("Cut "+it.name);}],...(o.clip?[["Paste here",()=>filesPaste(o.id)]]:[]),["Properties",()=>filesProps(it)],"sep",["Move to Trash",()=>filesTrash(o.id,it),true]]);}
+async function filesRename(id,it){const nn=await dialog("Rename","New name:",{input:it.name,ok:"Rename"});if(!nn||nn===it.name)return;try{await api("/api/fs/rename","POST",{path:it.path,to:nn});filesLoad(id);}catch(e){toast(e);}}
+async function filesTrash(id,it){try{await api("/api/fs/trash","POST",{path:it.path});filesLoad(id);notify("Moved to Trash",it.name);}catch(e){toast(e);}}
+async function filesPaste(id){const o=WIN[id];if(!o.clip)return;try{const ep=o.clip.op==="cut"?"/api/fs/move":"/api/fs/copy";await api(ep,"POST",{path:o.clip.it.path,to:o.cwd});if(o.clip.op==="cut")o.clip=null;filesLoad(id);}catch(e){toast(e);}}
+async function filesProps(it){try{const p=await api("/api/fs/props","POST",{path:it.path});
+  await dialog("Properties",`Name:  ${p.name}\nPath:  ${p.path}\nType:  ${p.dir?"Folder":"File"}\nSize:  ${human(p.size)}\nMode:  ${p.mode}\nOwner: ${p.uid}:${p.gid}\nModified: ${new Date(p.modified*1000).toLocaleString()}`,{ok:"Close"});}catch(e){toast(e);}}
+async function filesSearch(id){const o=WIN[id];const q=$("#fsr"+id).value.trim();if(!q)return filesLoad(id);
+  try{const j=await api("/api/fs/search","POST",{path:o.cwd,q});const g=$("#fg"+id);g.innerHTML=j.items.length?"":'<div class="empty">No matches</div>';
+    j.items.forEach(it=>{const el=ce("div","fitem");el.innerHTML=`<div class="fi" style="color:var(--accent2)">${fileIcon(it)}</div><div class="fn">${esc(it.name)}</div>`;el.ondblclick=()=>filesOpen(id,it);g.appendChild(el);});}catch(e){toast(e);}}
+function ctxWin(o,e,items){const r=$("#stage").getBoundingClientRect();ctxMenu(e.clientX-r.left,e.clientY-r.top,items);}
+async function openImage(it){const m=$("#modal");m.style.display="grid";m.innerHTML=`<div class="dlg" style="width:auto;max-width:80vw"><h4>${esc(it.name)}</h4><img src="/api/raw?path=${encodeURIComponent(it.path)}&token=${encodeURIComponent(TOKEN)}" style="max-width:70vw;max-height:60vh;border-radius:8px" onerror="this.replaceWith(Object.assign(document.createElement('p'),{textContent:'(preview unavailable)'}))"><div class="btns" style="margin-top:12px"><button class="mini" onclick="$('#modal').style.display='none'">Close</button></div></div>`;}
+
+/* Terminal */
+APP_RENDER.terminal=(wb,o,arg)=>{o.cwd=arg||"/";o.hist=[];o.hi=0;
+  wb.innerHTML=`<div class="term"><div class="termout" id="to${o.id}">Fabric OS terminal — real commands run in your workspace (~/FabricOS).\nType 'help' via 'ls', 'pwd', 'cat', 'echo', etc.\n</div><div class="terminp"><span class="ps" id="ps${o.id}">/ $</span><input id="ti${o.id}" autocomplete="off" spellcheck="false"></div></div>`;
+  const inp=wb.querySelector("input");inp.focus();wb.querySelector(".term").onclick=()=>inp.focus();
+  inp.onkeydown=e=>{if(e.key==="Enter"){termRun(o.id,inp.value);inp.value="";}
+    else if(e.key==="ArrowUp"){if(o.hi>0)inp.value=o.hist[--o.hi]||"";}
+    else if(e.key==="ArrowDown"){if(o.hi<o.hist.length)inp.value=o.hist[++o.hi]||"";}
+    else if(e.ctrlKey&&e.key.toLowerCase()==="l"){e.preventDefault();$("#to"+o.id).textContent="";}};};
+async function termRun(id,cmd){const o=WIN[id];const out=$("#to"+id);out.textContent+=`\n${o.cwd} $ ${cmd}\n`;if(cmd.trim()){o.hist.push(cmd);o.hi=o.hist.length;}
+  if(cmd.trim()==="clear"){out.textContent="";return;}
+  try{const j=await api("/api/exec","POST",{cmd,cwd:o.cwd});o.cwd=j.cwd;$("#ps"+id).textContent=j.cwd+" $";if(j.out)out.textContent+=j.out;}catch(e){out.textContent+=String(e)+"\n";}
+  out.scrollTop=out.scrollHeight;}
+
+/* Editor */
+APP_RENDER.editor=(wb,o,arg)=>{o.path=null;
+  wb.innerHTML=`<div class="edwrap"><div class="edbar"><button class="mini ghost" onclick="edOpen(${o.id})">Open</button><button class="mini" onclick="edSave(${o.id})">Save</button><span class="code" id="ep${o.id}" style="flex:1">untitled</span></div><textarea class="edarea" id="ea${o.id}" spellcheck="false" placeholder="Open a file from Files, or write and Save…"></textarea></div>`;
+  o.openFile=async p=>{try{const j=await api("/api/fs/read","POST",{path:p});o.path=j.path;$("#ea"+o.id).value=j.content;$("#ep"+o.id).textContent=j.path;}catch(e){toast(e);}};
+  if(arg)o.openFile(arg);};
+async function edOpen(id){const p=await dialog("Open file","Workspace path (e.g. /Documents/Welcome.txt):",{input:"/Documents/Welcome.txt",ok:"Open"});if(p)WIN[id].openFile(p);}
+async function edSave(id){const o=WIN[id];let p=o.path;if(!p){p=await dialog("Save as","Workspace path:",{input:"/Documents/untitled.txt",ok:"Save"});if(!p)return;o.path=p;$("#ep"+id).textContent=p;}
+  try{await api("/api/fs/write","POST",{path:p,content:$("#ea"+id).value});toast("Saved "+p);}catch(e){toast(e);}}
+
+/* Processes */
+APP_RENDER.processes=(wb,o)=>{wb.innerHTML=`<div class="pad"><div class="row"><input id="pq${o.id}" placeholder="Filter…" class="" style="padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);outline:none;min-width:160px" oninput="psRender(${o.id})"><button class="mini ghost" onclick="psLoad(${o.id})">⟳ Refresh</button><span class="sub2" id="pc${o.id}" style="margin:0"></span></div><div id="pt${o.id}"></div></div>`;
+  o.timer=setInterval(()=>psLoad(o.id),4000);o.cleanup=()=>clearInterval(o.timer);psLoad(o.id);};
+async function psLoad(id){const o=WIN[id];try{o.procs=(await api("/api/ps")).processes;psRender(id);}catch(e){}}
+function psRender(id){const o=WIN[id];if(!o.procs)return;const q=($("#pq"+id).value||"").toLowerCase();const rows=o.procs.filter(p=>p.name.toLowerCase().includes(q)||String(p.pid).includes(q));
+  $("#pc"+id).textContent=rows.length+" processes";
+  $("#pt"+id).innerHTML=`<table class="tbl"><thead><tr><th>PID</th><th>Name</th><th>RAM</th><th>St</th><th>Command</th><th></th></tr></thead><tbody>`+rows.slice(0,120).map(p=>`<tr><td class="code">${p.pid}</td><td>${esc(p.name)}</td><td>${p.rss_mb} MB</td><td><span class="tag t-mut">${p.state.split(' ')[0]}</span></td><td class="code" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.cmd)}</td><td><span class="dl" onclick="psKill(${id},${p.pid},'${esc(p.name)}')">Kill</span></td></tr>`).join("")+`</tbody></table>`;}
+async function psKill(id,pid,name){if(!await dialog("Kill process",`Terminate ${name} (PID ${pid})?`,{ok:"Kill",danger:true}))return;try{await api("/api/ps/kill","POST",{pid,sig:"TERM"});toast("Signal sent to "+pid);setTimeout(()=>psLoad(id),400);}catch(e){toast(e);}}
+
+/* Monitor */
+APP_RENDER.monitor=(wb,o)=>{wb.innerHTML=`<div class="pad" id="mon${o.id}"></div>`;o.hist={cpu:[],mem:[]};
+  const draw=async()=>{try{const m=await api("/api/sys/monitor");const memPct=m.mem_total?Math.round((m.mem_total-m.mem_avail)/m.mem_total*100):0;const swPct=m.swap_total?Math.round((m.swap_total-m.swap_free)/m.swap_total*100):0;
+    o.hist.cpu.push(m.cpu);o.hist.mem.push(memPct);o.hist.cpu=o.hist.cpu.slice(-40);o.hist.mem=o.hist.mem.slice(-40);
+    $("#mon"+o.id).innerHTML=`
+     <div class="setrow"><div class="lbl">CPU <span class="d">load ${m.load.join(" ")}</span></div><b>${m.cpu}%</b></div><div class="meter"><i style="width:${m.cpu}%"></i></div>${spark(o.hist.cpu)}
+     <div class="setrow"><div class="lbl">Memory <span class="d">${human(m.mem_total-m.mem_avail)} / ${human(m.mem_total)}</span></div><b>${memPct}%</b></div><div class="meter"><i style="width:${memPct}%"></i></div>${spark(o.hist.mem)}
+     <div class="setrow"><div class="lbl">Swap</div><b>${swPct}%</b></div><div class="meter"><i style="width:${swPct}%"></i></div>
+     ${m.gpu!=null?`<div class="setrow"><div class="lbl">GPU</div><b>${m.gpu}%</b></div><div class="meter"><i style="width:${m.gpu}%"></i></div>`:""}
+     <div class="sub2" style="margin-top:10px">Uptime ${(m.uptime/3600).toFixed(1)}h · real /proc metrics</div>`;
+  }catch(e){}};draw();o.timer=setInterval(draw,2000);o.cleanup=()=>clearInterval(o.timer);};
+function spark(a){if(a.length<2)return"";const w=100,h=28,max=100;const pts=a.map((v,i)=>`${(i/(a.length-1)*w).toFixed(1)},${(h-v/max*h).toFixed(1)}`).join(" ");return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:34px;margin:-6px 0 12px"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>`;}
+
+/* System Info */
+APP_RENDER.sysinfo=async(wb)=>{wb.innerHTML='<div class="pad"><div class="spinner"></div></div>';
+  try{const s=await api("/api/sys/info");const st=await api("/api/sys/storage");const disk=st.disks[0];
+    wb.innerHTML=`<div class="pad"><h3>System Information</h3><div class="sub2">Real, from your running system</div>
+    <table class="tbl"><tbody>
+    <tr><td>OS</td><td>${esc(s.os)}</td></tr><tr><td>Kernel</td><td class="code">${esc(s.kernel)}</td></tr>
+    <tr><td>Architecture</td><td>${esc(s.arch)}</td></tr><tr><td>Hostname</td><td>${esc(s.hostname)}</td></tr>
+    <tr><td>CPU</td><td>${esc(s.cpu)} (${s.cores} threads)</td></tr>
+    ${disk?`<tr><td>Root disk</td><td>${esc(disk.source)} — ${human(disk.used)} / ${human(disk.size)} used</td></tr>`:""}
+    <tr><td>Desktop</td><td>Fabric OS Shell</td></tr></tbody></table></div>`;}catch(e){wb.innerHTML=`<div class="empty">${e}</div>`;}};
+
+/* Trash */
+APP_RENDER.trash=async(wb,o)=>{o.load=async()=>{try{const j=await api("/api/trash");
+  wb.innerHTML=`<div class="pad"><div class="row"><h3 style="flex:1">Trash</h3><button class="mini dng" onclick="trashEmpty(${o.id})">Empty Trash</button></div>
+  ${j.items.length?`<table class="tbl"><thead><tr><th>Name</th><th>Origin</th><th></th></tr></thead><tbody>`+j.items.map(t=>`<tr><td>${t.dir?"📁":"📄"} ${esc(t.name)}</td><td class="code">${esc(t.origin)}</td><td><span class="link" onclick="trashRestore(${o.id},'${esc(t.id)}')">Restore</span></td></tr>`).join("")+`</tbody></table>`:'<div class="empty">Trash is empty</div>'}</div>`;}catch(e){wb.innerHTML=`<div class="empty">${e}</div>`;}};o.load();};
+async function trashRestore(id,tid){try{await api("/api/trash/restore","POST",{id:tid});WIN[id].load();toast("Restored");}catch(e){toast(e);}}
+async function trashEmpty(id){if(!await dialog("Empty Trash","Permanently delete all items in Trash? This cannot be undone.",{ok:"Empty",danger:true}))return;try{await api("/api/trash/empty","POST",{confirm:true});WIN[id].load();}catch(e){toast(e);}}
+
+/* Clipboard */
+APP_RENDER.clipboard=async(wb,o)=>{o.load=async()=>{const j=await api("/api/clipboard").catch(()=>({items:[]}));
+  wb.innerHTML=`<div class="pad"><div class="row"><input id="cb${o.id}" placeholder="Add to clipboard…" style="flex:1;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);outline:none"><button class="mini" onclick="cbAdd(${o.id})">Copy</button></div>
+  ${j.items.length?j.items.map(c=>`<div class="setrow"><div class="lbl code" style="word-break:break-all">${esc(c.text)}</div><span class="link" onclick="navigator.clipboard&&navigator.clipboard.writeText(${JSON.stringify(c.text)});toast('Copied')">Use</span><span class="dl" onclick="cbDel(${o.id},'${c.id}')">✕</span></div>`).join(""):'<div class="empty">Clipboard history is empty</div>'}</div>`;};o.load();};
+async function cbAdd(id){const v=$("#cb"+id).value.trim();if(!v)return;await api("/api/clipboard","POST",{text:v});WIN[id].load();}
+async function cbDel(id,cid){await api("/api/clipboard/"+cid,"DELETE");WIN[id].load();}
+
+/* AI Assistant — natural language -> real OS actions */
+APP_RENDER.assistant=(wb,o)=>{wb.innerHTML=`<div class="pad"><h3>Ask AI to do something</h3><div class="sub2">Runs locally. It can answer, or perform safe OS actions (open apps, search files, create folders, show usage). Dangerous actions ask first.</div>
+  <div class="row"><input id="ai${o.id}" placeholder='e.g. "open my Downloads" · "create folder UPSC Notes" · "show top RAM"' style="flex:1;min-width:220px;padding:12px 14px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);outline:none;font-size:1rem" onkeydown="if(event.key==='Enter')aiGo(${o.id})"><button class="mini" onclick="aiGo(${o.id})">Ask</button></div>
+  <div class="chips" style="margin-bottom:14px">
+   <button class="chip" onclick="$('#ai${o.id}').value='open my downloads';aiGo(${o.id})">Open Downloads</button>
+   <button class="chip" onclick="$('#ai${o.id}').value='create folder UPSC Notes';aiGo(${o.id})">Create folder</button>
+   <button class="chip" onclick="$('#ai${o.id}').value='show top ram';aiGo(${o.id})">Top RAM</button>
+   <button class="chip" onclick="$('#ai${o.id}').value='show disk usage';aiGo(${o.id})">Disk usage</button>
+   <button class="chip" onclick="$('#ai${o.id}').value='open terminal';aiGo(${o.id})">Open Terminal</button></div>
+  <div class="aihdr" id="aih${o.id}" style="font-size:.78rem;color:var(--muted);margin-bottom:8px"><span style="color:var(--ok)">●</span> Local AI</div>
+  <div id="ans${o.id}" style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:15px;min-height:120px;line-height:1.55;white-space:pre-wrap">Ask anything, or tell me to do something.</div></div>`;$("#ai"+o.id).focus();};
+async function aiGo(id){const q=$("#ai"+id).value.trim();if(!q)return;const ans=$("#ans"+id),h=$("#aih"+id);
+  const act=parseIntent(q);
+  if(act){h.innerHTML=`<span style="color:var(--accent2)">⚙</span> Action`;ans.textContent="";
+    if(act.danger&&!await dialog("Confirm action",act.confirm,{ok:"Do it",danger:true})){ans.textContent="Cancelled.";return;}
+    try{const msg=await act.run();ans.textContent="✓ "+msg;notify("AI action",msg);}catch(e){ans.textContent="✗ "+e;}return;}
+  h.innerHTML=`<span class="spinner"></span> Thinking locally…`;ans.textContent="";
+  try{const j=await api("/api/ask","POST",{prompt:q});h.innerHTML=`<span style="color:var(--ok)">●</span> Local AI · ${j.backend}`;ans.textContent=j.text;}catch(e){h.textContent="Error";ans.textContent=String(e);}}
+function parseIntent(q){const s=q.toLowerCase();
+  const email=q.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/);
+  if((s.includes("mail")||s.includes("email"))&&email){return{run:async()=>{
+    const subjM=q.match(/write a? ?(.*?) (note|mail|email|message)/i);const subj=(subjM?subjM[1]:"Hello").trim()||"Hello";
+    const comp=await api("/api/ask","POST",{prompt:"Write a short, friendly "+subj+" note as an email body (2-4 sentences), no subject line."});
+    const r=await api("/api/mail/send","POST",{to:email[0],subject:subj.charAt(0).toUpperCase()+subj.slice(1),body:comp.text});
+    return "Sent email to "+email[0]+": \n\n"+comp.text;
+  }};}
+  const openMap={downloads:"/Downloads",documents:"/Documents",pictures:"/Pictures",music:"/Music",videos:"/Videos"};
+  for(const k in openMap)if(s.includes(k)&&(s.includes("open")||s.includes("go to")))return{run:async()=>{app("files",openMap[k]);return"Opened "+openMap[k];}};
+  if((s.includes("create")||s.includes("make")||s.includes("new"))&&s.includes("folder")){const name=q.replace(/.*folder/i,"").trim()||"New Folder";return{run:async()=>{await api("/api/fs/mkdir","POST",{path:"/Documents/"+name});app("files","/Documents");return"Created folder /Documents/"+name;}};}
+  if(s.includes("terminal"))return{run:async()=>{app("terminal");return"Opened Terminal";}};
+  if(s.includes("settings"))return{run:async()=>{app("settings");return"Opened Settings";}};
+  if(s.includes("top")&&s.includes("ram")||s.includes("most ram")||s.includes("memory")&&s.includes("using")){return{run:async()=>{app("processes");const p=(await api("/api/ps")).processes.slice(0,3).map(x=>`${x.name} (${x.rss_mb}MB)`).join(", ");return"Top memory: "+p;}};}
+  if(s.includes("disk")&&(s.includes("usage")||s.includes("space"))){return{run:async()=>{const d=(await api("/api/sys/storage")).disks[0];app("sysinfo");return d?`${d.source}: ${human(d.used)} used of ${human(d.size)} (${human(d.avail)} free)`:"no disk info";}};}
+  if(s.includes("find")||s.includes("search")){const q2=q.replace(/.*(find|search)( for)?/i,"").trim();return{run:async()=>{app("files");const j=await api("/api/fs/search","POST",{path:"/",q:q2});return`Found ${j.items.length} match(es) for "${q2}"`;}};}
+  if(s.includes("shutdown")||s.includes("power off"))return{danger:true,confirm:"Power off the machine now?",run:async()=>{await api("/api/power","POST",{action:"poweroff",confirm:true});return"powering off";}};
+  return null;}
+
+/* Settings */
+APP_RENDER.settings=(wb,o,tab)=>{o.tab=tab||"appearance";
+  wb.innerHTML=`<div class="setwrap"><div class="setnav" id="sn${o.id}"></div><div class="setbody" id="sb${o.id}"></div></div>`;
+  const S_ICON={appearance:"wallpaper",account:"users",ai:"assistant",cloud:"network",mail:"mail",network:"network",wifi:"network",storage:"storage",users:"users",display:"display",datetime:"datetime",power:"power",about:"sysinfo"};
+  const S_ORDER=["appearance","account","ai","cloud","mail","wifi","network","storage","users","display","datetime","power","about"];
+  const secs=[["appearance","Appearance"],["account","Account"],["ai","AI & Models"],["cloud","Cloud AI"],["mail","Mail"],["wifi","Wi-Fi"],["network","Network"],["storage","Storage"],["users","Users"],["display","Displays"],["datetime","Date & Time"],["power","Power & Battery"],["about","About"]];
+  $("#sn"+o.id).innerHTML=secs.map(([id,n])=>`<button class="${id===o.tab?'on':''}" onclick="setTab(${o.id},'${id}')">${ic(S_ICON[id])} ${n}</button>`).join("");
+  o.onarg=t=>setTab(o.id,t);setTab(o.id,o.tab);};
+const S_ORD=["appearance","account","ai","cloud","mail","wifi","network","storage","users","display","datetime","power","about"];
+function setTab(id,tab){const o=WIN[id];o.tab=tab;const bs=Array.from($("#sn"+id).children);bs.forEach(b=>b.classList.remove("on"));const i=S_ORD.indexOf(tab);if(bs[i])bs[i].classList.add("on");SETPAGE[tab]($("#sb"+id),id);}
+const SETPAGE={
+ appearance:(b)=>{const accents=["#f26b3a","#8a5cf6","#3fcb7e","#3b82f6","#e0457b","#e0a64b"];const wps=["aurora","ember","forest","ocean","rose","mono"];
+  b.innerHTML=`<h3>Appearance</h3><div class="sub2">Personalize your desktop. Changes save automatically.</div>
+   <div class="setrow"><div class="lbl">Theme<div class="d">Light or dark</div></div><div class="chips">
+     <button class="chip ${SET.theme!=='light'?'':''}" onclick="saveSet({theme:'dark'});toast('Dark theme')">Dark</button>
+     <button class="chip" onclick="saveSet({theme:'light'});toast('Light theme')">Light</button></div></div>
+   <div class="setrow"><div class="lbl">Accent<div class="d">Highlight color</div></div><div style="display:flex;gap:8px">${accents.map(c=>`<div class="swatch ${SET.accent===c?'on':''}" style="background:${c}" onclick="saveSet({accent:'${c}'});app('settings','appearance')"></div>`).join("")}</div></div>
+   <div class="setrow"><div class="lbl">Wallpaper<div class="d">Desktop background</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${wps.map(w=>`<div class="wp wp-${w} ${SET.wallpaper===w?'on':''}" onclick="saveSet({wallpaper:'${w}'});app('settings','appearance')"></div>`).join("")}<label class="chip" style="cursor:pointer">Upload…<input type="file" accept="image/*" style="display:none" onchange="wallUpload(this)"></label>${SET.wallpaper==='custom'?'<span class="tag t-ok">custom</span>':''}</div></div>
+   <div class="setrow"><div class="lbl">Font scale<div class="d">${(SET.font_scale||1).toFixed(2)}×</div></div><input type="range" min="0.8" max="1.4" step="0.05" value="${SET.font_scale||1}" oninput="saveSet({font_scale:+this.value})"></div>
+   <div class="setrow"><div class="lbl">Reduce motion<div class="d">Minimize animations</div></div><div class="togg ${SET.reduce_motion?'on':''}" onclick="saveSet({reduce_motion:!SET.reduce_motion});app('settings','appearance')"></div></div>
+   <style>.wp-aurora{background:linear-gradient(135deg,#1a1330,#2c1d44)}.wp-ember{background:linear-gradient(135deg,#2a1410,#160d12)}.wp-forest{background:linear-gradient(135deg,#0f2620,#123a2c)}.wp-ocean{background:linear-gradient(135deg,#0d1b33,#123a55)}.wp-rose{background:linear-gradient(135deg,#2c1526,#45203a)}.wp-mono{background:linear-gradient(135deg,#1a1a1f,#2a2a33)}</style>`;},
+ account:(b)=>{b.innerHTML=`<h3>Account</h3><div class="sub2">Manage your Fabric OS user.</div>
+   <div class="row"><div class="inp"><label>Username</label><input id="unm" value="admin"></div><button class="mini ghost" onclick="chUser()">Update</button></div>
+   <h3 style="margin-top:16px;font-size:.95rem">Change password</h3>
+   <div class="row"><div class="inp"><label>Current</label><input id="pold" type="password"></div><div class="inp"><label>New</label><input id="pnew" type="password"></div><button class="mini" onclick="chPass()">Change</button></div>
+   <div class="sub2">Passwords are stored hashed (HMAC-SHA256), never in plaintext.</div>`;},
+ ai:(b)=>{b.innerHTML=`<h3>AI &amp; Models</h3><div class="sub2">Local-first inference; cloud optional.</div>
+   <div class="setrow"><div class="lbl">System-wide AI<div class="d">Expose AI to apps</div></div><div class="togg ${SET.system_wide_ai!==false?'on':''}" onclick="saveSet({system_wide_ai:!(SET.system_wide_ai!==false)});app('settings','ai')"></div></div>
+   <div class="setrow"><div class="lbl">Privacy<div class="d">Where requests may go</div></div><select onchange="saveSet({privacy:this.value})"><option value="local_only" ${SET.privacy==='local_only'?'selected':''}>Local only</option><option value="ask_before_cloud" ${SET.privacy==='ask_before_cloud'?'selected':''}>Ask before cloud</option><option value="allow_cloud" ${SET.privacy==='allow_cloud'?'selected':''}>Allow cloud</option></select></div>
+   <div class="setrow"><div class="lbl">Default model</div><span class="code">${esc(SET.default_model||'local/reasoning')}</span></div>
+   <div class="chips" style="margin-top:10px"><button class="chip" onclick="app('assistant')">Open Assistant</button><button class="chip" onclick="app('governor')">Governor</button><button class="chip" onclick="app('agents')">Agents</button></div>`;},
+ network:async(b)=>{b.innerHTML='<div class="spinner"></div>';try{const j=await api("/api/sys/network");b.innerHTML=`<h3>Network</h3><div class="sub2">Real interfaces on this system.</div><table class="tbl"><thead><tr><th>Interface</th><th>State</th><th>IPv4</th><th>MAC</th></tr></thead><tbody>${j.interfaces.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.state==='up'?'<span class="tag t-ok">up</span>':`<span class="tag t-mut">${esc(i.state)}</span>`}</td><td class="code">${esc(i.ipv4||'—')}</td><td class="code">${esc(i.mac)}</td></tr>`).join("")}</tbody></table>`;}catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
+ storage:async(b)=>{b.innerHTML='<div class="spinner"></div>';try{const j=await api("/api/sys/storage");b.innerHTML=`<h3>Storage</h3><div class="sub2">Real mounted filesystems.</div>${j.disks.map(d=>{const pct=d.size?Math.round(d.used/d.size*100):0;return `<div class="setrow"><div class="lbl">${esc(d.mount)} <div class="d">${esc(d.source)} · ${esc(d.fstype)}</div></div><b>${human(d.used)} / ${human(d.size)}</b></div><div class="meter"><i style="width:${pct}%"></i></div>`;}).join("")}`;}catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
+ users:async(b)=>{const j=await api("/api/os/users");const admin=j.role==="admin";
+  b.innerHTML=`<h3>Users</h3><div class="sub2">Fabric OS accounts. ${admin?"You are an admin — full control.":"Sign in as admin to manage users."}</div>
+   ${admin?`<div class="row"><div class="inp"><label>Username</label><input id="nu"></div><div class="inp"><label>Password</label><input id="nup" type="password"></div><div class="inp"><label>Role</label><select id="nur"><option>user</option><option>admin</option></select></div><button class="mini" onclick="uCreate()">+ Add user</button></div>`:""}
+   <table class="tbl"><thead><tr><th>User</th><th>Role</th><th></th></tr></thead><tbody>${j.users.map(x=>`<tr><td>${esc(x.user)} ${x.user===j.me?'<span class="tag t-mut">you</span>':''}</td><td><span class="tag ${x.role==='admin'?'t-warn':'t-mut'}">${x.role}</span></td><td>${admin?`<span class="link" onclick="uReset('${esc(x.user)}')">Reset pw</span> ${x.user!=='admin'?`<span class="dl" onclick="uDel('${esc(x.user)}')">Delete</span>`:''}`:''}</td></tr>`).join("")}</tbody></table>
+   <h3 style="margin-top:16px;font-size:.95rem">OS users</h3><div id="osu"><div class="spinner"></div></div>`;
+  api("/api/sys/users").then(o=>{const e=document.getElementById("osu");if(e)e.innerHTML=`<table class="tbl"><tbody>${o.users.filter(x=>!x.system).slice(0,20).map(x=>`<tr><td>${esc(x.user)}</td><td>${x.uid}</td><td class="code">${esc(x.shell)}</td></tr>`).join("")}</tbody></table><div class="sub2">Real /etc/passwd users; creating OS users needs root (privilege-guarded).</div>`;});},
+ display:(b)=>{b.innerHTML=`<h3>Display</h3><div class="sub2">Rendering handled by the host compositor.</div><div class="setrow"><div class="lbl">UI scaling</div><input type="range" min="0.8" max="1.4" step="0.05" value="${SET.font_scale||1}" oninput="saveSet({font_scale:+this.value})"></div><div class="setrow"><div class="lbl">Resolution</div><span class="code">${window.innerWidth}×${window.innerHeight}</span></div><div class="setrow"><div class="lbl">Reduce motion</div><div class="togg ${SET.reduce_motion?'on':''}" onclick="saveSet({reduce_motion:!SET.reduce_motion});app('settings','display')"></div></div>`;},
+ datetime:async(b)=>{const d=await api("/api/sys/datetime").catch(()=>({}));b.innerHTML=`<h3>Date &amp; Time</h3><div class="sub2">Real system clock (timedatectl).</div>
+   <div class="setrow"><div class="lbl">Automatic (NTP)<div class="d">Sync time over the network</div></div><div class="togg ${d.ntp?'on':''}" onclick="dtNtp(${!d.ntp})"></div></div>
+   <div class="setrow"><div class="lbl">Current time</div><b id="dtclk">${new Date().toLocaleTimeString()}</b></div>
+   <div class="setrow"><div class="lbl">Time zone</div><span class="code">${esc(d.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone)}</span></div>
+   <div class="row" style="margin-top:10px"><div class="inp"><label>Set time manually</label><input id="dtman" type="datetime-local"></div><button class="mini ghost" onclick="dtSet()">Set</button></div>
+   <div class="sub2">Manual/NTP changes need privileges; the real error is shown if denied.</div>`;const t=setInterval(()=>{const e=document.getElementById("dtclk");if(!e){clearInterval(t);return;}e.textContent=new Date().toLocaleTimeString();},1000);},
+ power:async(b)=>{const bt=await api("/api/sys/battery").catch(()=>({}));const bat=bt.battery;
+   b.innerHTML=`<h3>Power &amp; Battery</h3><div class="sub2">Real power status from /sys/class/power_supply.</div>
+   ${bat?`<div class="setrow"><div class="lbl">Battery <div class="d">${esc(bat.status)}</div></div><b>${bat.capacity}%</b></div><div class="meter"><i style="width:${bat.capacity}%;background:${bat.capacity<20?'var(--danger)':'linear-gradient(90deg,var(--accent),var(--accent2))'}"></i></div>`:'<div class="setrow"><div class="lbl">Battery</div><span class="tag t-mut">no battery detected (desktop/VM)</span></div>'}
+   <div class="setrow"><div class="lbl">Power source</div><span class="tag ${bt.ac?'t-ok':'t-mut'}">${bt.ac?'AC — charger connected':'On battery'}</span></div>
+   <div class="setrow"><div class="lbl">When lid closes<div class="d">systemd-logind policy</div></div><select onchange="toast('Lid policy needs logind privileges')"><option>Suspend</option><option>Lock screen</option><option>Do nothing</option></select></div>
+   <div class="setrow"><div class="lbl">Screen blank<div class="d">Idle timeout</div></div><select><option>5 min</option><option>10 min</option><option>Never</option></select></div>
+   <h3 style="margin-top:14px;font-size:.95rem">Session &amp; power</h3>
+   <div class="chips"><button class="chip" onclick="location.reload()">Lock</button><button class="chip" onclick="logout()">Sign out</button><button class="chip" onclick="powerAct('suspend')">Suspend</button><button class="chip" onclick="powerAct('reboot')">Restart</button><button class="chip" onclick="powerAct('poweroff')">Shut down</button></div>
+   <div class="sub2" style="margin-top:10px">Power actions call systemctl; if unprivileged, the real error is shown (never faked).</div>`;},
+ cloud:async(b)=>{const c=await api("/api/ai/provider").catch(()=>({}));b.innerHTML=`<h3>Cloud AI provider</h3><div class="sub2">Optional. Used only when Privacy = Allow cloud. OpenAI-compatible chat endpoint.</div>
+  <div class="inp" style="margin-bottom:10px"><label>Provider name</label><input id="cpn" value="${esc(c.name||'OpenAI')}"></div>
+  <div class="inp" style="margin-bottom:10px"><label>Endpoint URL</label><input id="cpe" style="min-width:340px" value="${esc(c.endpoint||'https://api.openai.com/v1/chat/completions')}"></div>
+  <div class="inp" style="margin-bottom:10px"><label>Model</label><input id="cpm" value="${esc(c.model||'gpt-4o-mini')}"></div>
+  <div class="inp" style="margin-bottom:12px"><label>API key ${c.configured?'(stored)':''}</label><input id="cpk" type="password" placeholder="${c.configured?'•••• leave blank to keep':'sk-…'}"></div>
+  <button class="mini" onclick="cloudSave()">Save provider</button> <button class="chip" onclick="saveSet({privacy:'allow_cloud'});toast('Cloud AI enabled')">Enable cloud</button>
+  <div class="sub2" style="margin-top:10px">Key stored locally (0600). The Assistant uses this when cloud is allowed.</div>`;},
+ mail:async(b)=>{const m=await api("/api/mail/config").catch(()=>({}));b.innerHTML=`<h3>Mail (SMTP)</h3><div class="sub2">Configure SMTP so the Assistant and Mail app can send real email.</div>
+  <div class="row"><div class="inp"><label>SMTP host</label><input id="mh" value="${esc(m.host||'')}" placeholder="smtp.gmail.com"></div><div class="inp"><label>Port</label><input id="mp" value="${m.port||465}" style="min-width:80px"></div></div>
+  <div class="row"><div class="inp"><label>Username</label><input id="mu" value="${esc(m.user||'')}"></div><div class="inp"><label>From address</label><input id="mf" value="${esc(m.from||'')}"></div></div>
+  <div class="row"><div class="inp"><label>Password ${m.configured?'(stored)':''}</label><input id="mpw" type="password" placeholder="${m.configured?'•••• blank=keep':'app password'}"></div><button class="mini" onclick="mailSave()">Save</button></div>
+  <div class="sub2">SMTPS/TLS. For Gmail use an app password. Sends real email.</div>`;},
+ wifi:async(b)=>{b.innerHTML='<div class="pad"><div class="spinner"></div> scanning…</div>';try{const j=await api("/api/sys/wifi");if(!j.available){b.innerHTML='<h3>Wi-Fi</h3><div class="empty">NetworkManager (nmcli) not available here.</div>';return;}
+   b.innerHTML=`<h3>Wi-Fi</h3><div class="sub2">Real networks via nmcli. Connect/disconnect uses NetworkManager (privileged).</div><div id="wl"></div>`;
+   const wl=document.getElementById("wl");wl.innerHTML=j.networks.sort((a,c)=>c.signal-a.signal).map(n=>`<div class="setrow"><div class="lbl">${n.active?'● ':''}${esc(n.ssid)}<div class="d">${esc(n.security||'open')} · ${n.signal}%</div></div>${n.active?`<button class="chip" onclick="wifiDisc('${esc(n.ssid)}')">Disconnect</button>`:`<button class="chip" onclick="wifiConn('${esc(n.ssid)}')">Connect</button>`}</div>`).join("");
+  }catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
+ about:(b)=>{b.innerHTML=`
+   <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><div class="mark" style="width:52px;height:52px;border-radius:14px">${LOGOSVG}</div><div><h3 style="margin:0">Fabric OS</h3><div class="sub2" style="margin:0">by Patience AI</div></div></div>
+   <div class="setrow"><div class="lbl">Version</div><span class="code">${VERSION}</span></div>
+   <div class="setrow"><div class="lbl">Shell</div><span>Fabric Desktop</span> <span class="tag t-mut" id="ab_pm"></span></div>
+   <div class="setrow"><div class="lbl">Kernel</div><span class="code" id="ab_k">…</span></div>
+   <div class="setrow"><div class="lbl">CPU</div><span id="ab_c">…</span></div>
+   <div class="setrow"><div class="lbl">Software updates<div class="d" id="upinfo">Keep your system current</div></div><button class="mini ghost" onclick="checkUpdates()">Check for updates</button></div>
+   <div id="uplist"></div>
+   <h3 style="margin-top:16px;font-size:.95rem">Feedback &amp; support</h3>
+   <div class="sub2">Send feedback, a support request or a bug report to Patience AI (info@patienceai.in).</div>
+   <div class="row"><div class="inp"><label>Type</label><select id="fbT"><option>Feedback</option><option>Support</option><option>Bug report</option></select></div><div class="inp" style="flex:1"><label>Subject</label><input id="fbSub" placeholder="Short summary"></div></div>
+   <div class="inp" style="margin-bottom:10px"><label>Message</label><textarea id="fbM" style="min-height:90px;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none;resize:vertical;font-family:inherit"></textarea></div>
+   <button class="mini" onclick="sendFeedback()">Send to Patience AI</button> <span id="fbS" class="sub2" style="margin-left:8px"></span>`;
+   api("/api/sys/info").then(x=>{const k=document.getElementById("ab_k"),c=document.getElementById("ab_c");if(k)k.textContent=x.kernel;if(c)c.textContent=x.cpu;});},
+};
+async function chUser(){const nu=$("#unm").value.trim();if(!nu)return;try{await api("/api/account/username","POST",{username:nu});toast("Username updated");}catch(e){toast(e);}}
+async function chPass(){const o=$("#pold").value,n=$("#pnew").value;if(!n)return toast("Enter a new password");try{await api("/api/account/password","POST",{old:o,new:n});toast("Password changed");$("#pold").value="";$("#pnew").value="";}catch(e){toast(e);}}
+async function powerAct(a){const names={suspend:"Suspend",reboot:"Restart",poweroff:"Shut down"};if(!await dialog(names[a],names[a]+" the machine now?",{ok:names[a],danger:true}))return;try{await api("/api/power","POST",{action:a,confirm:true});toast(a+" requested");}catch(e){toast(e);}}
+
+/* Governor / Agents / Intents (from the security core) */
+APP_RENDER.governor=async(wb,o)=>{const ag=await api("/api/agents"),it=await api("/api/intents");
+  wb.innerHTML=`<div class="pad"><h3>AI Governor</h3><div class="sub2">AI proposes, policy verifies. Out-of-intent requests are blocked.</div>
+   <div class="row"><div class="inp"><label>Agent</label><select id="ga${o.id}">${ag.agents.filter(a=>!a.revoked).map(a=>`<option value="${a.id}">${esc(a.purpose)} · ${a.id.slice(0,8)}</option>`).join("")||'<option>— create in Agents —</option>'}</select></div>
+   <div class="inp"><label>Intent</label><select id="gi${o.id}">${it.intents.map(i=>`<option value="${i.id}">${esc(i.objective)} · ${i.state}</option>`).join("")||'<option>— create in Intents —</option>'}</select></div>
+   <div class="inp"><label>Capability</label><input id="gc${o.id}" value="net.connect:evil.com:443" style="min-width:220px"></div><button class="mini" onclick="govEval(${o.id})">Evaluate</button></div>
+   <div class="chips" style="margin-bottom:14px"><button class="chip" onclick="$('#gc${o.id}').value='fs.read:/home/user/Downloads/a.txt'">in-scope read</button><button class="chip" onclick="$('#gc${o.id}').value='net.connect:evil.com:443'">exfiltration</button></div>
+   <div id="go${o.id}" style="background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:15px">Pick agent + intent, request a capability, Evaluate.</div></div>`;};
+async function govEval(id){const o=WIN[id];try{const j=await api("/api/evaluate","POST",{agent_id:$("#ga"+id).value,intent_id:$("#gi"+id).value,capability:$("#gc"+id).value});const d=j.decision;const cls=d.includes("Allow")?"t-ok":d.includes("Deny")?"t-bad":"t-warn";$("#go"+id).innerHTML=`<span class="tag ${cls}" style="font-size:.85rem">${esc(d.replace(/[{}]/g,'').replace('reason:','· '))}</span><div class="sub2" style="margin-top:8px">Recorded to provenance.</div>`;}catch(e){$("#go"+id).textContent=String(e);}}
+APP_RENDER.agents=async(wb,o)=>{o.load=async()=>{const j=await api("/api/agents");
+  wb.innerHTML=`<div class="pad"><h3>Agents</h3><div class="sub2">Cryptographic identities.</div>
+  <div class="row"><div class="inp"><label>Owner</label><input id="ao${o.id}" value="user:admin"></div><div class="inp"><label>Purpose</label><input id="ap${o.id}" value="research"></div><div class="inp"><label>Trust</label><select id="at${o.id}"><option>limited</option><option>standard</option><option>untrusted</option><option>elevated</option></select></div><button class="mini" onclick="agCreate(${o.id})">+ Create</button></div>
+  ${j.agents.length?`<table class="tbl"><thead><tr><th>ID</th><th>Purpose</th><th>Trust</th><th>Status</th><th></th></tr></thead><tbody>`+j.agents.map(a=>`<tr><td class="code">${a.id.slice(0,12)}…</td><td>${esc(a.purpose)}</td><td><span class="tag t-mut">${a.trust}</span></td><td>${a.revoked?'<span class="tag t-bad">revoked</span>':'<span class="tag t-ok">active</span>'}</td><td>${a.revoked?'':`<span class="dl" onclick="agRevoke(${o.id},'${a.id}')">Revoke</span>`}</td></tr>`).join("")+`</tbody></table>`:'<div class="empty">No agents yet</div>'}</div>`;};o.load();};
+async function agCreate(id){await api("/api/agents","POST",{owner:$("#ao"+id).value,purpose:$("#ap"+id).value,trust:$("#at"+id).value});WIN[id].load();toast("Agent created");}
+async function agRevoke(id,aid){await api("/api/agents/"+aid,"DELETE");WIN[id].load();toast("Revoked");}
+APP_RENDER.intents=async(wb,o)=>{o.load=async()=>{const j=await api("/api/intents");
+  wb.innerHTML=`<div class="pad"><h3>Intents</h3><div class="sub2">Scoped authority.</div>
+  <div class="row"><div class="inp"><label>Objective</label><input id="io${o.id}" value="Organize Downloads" style="min-width:200px"></div><div class="inp"><label>Capabilities</label><input id="ic${o.id}" value="fs.read:/home/user/Downloads, fs.write:/home/user/Downloads" style="min-width:280px"></div><button class="mini" onclick="inCreate(${o.id})">+ Create</button></div>
+  ${j.intents.length?`<table class="tbl"><thead><tr><th>Objective</th><th>Caps</th><th>State</th><th></th></tr></thead><tbody>`+j.intents.map(i=>`<tr><td>${esc(i.objective)}</td><td class="code">${i.caps.join('<br>')}</td><td>${i.state==='Executing'||i.state==='Authorized'?`<span class="tag t-ok">${i.state}</span>`:`<span class="tag t-warn">${i.state}</span>`}</td><td>${i.state==='Validated'?`<span class="link" onclick="inAuth(${o.id},'${i.id}')">Authorize</span> `:''}${i.state!=='Cancelled'?`<span class="dl" onclick="inCancel(${o.id},'${i.id}')">Cancel</span>`:''}</td></tr>`).join("")+`</tbody></table>`:'<div class="empty">No intents yet</div>'}</div>`;};o.load();};
+async function inCreate(id){const caps=$("#ic"+id).value.split(",").map(s=>s.trim()).filter(Boolean);await api("/api/intents","POST",{objective:$("#io"+id).value,caps,risk:"medium"});WIN[id].load();toast("Intent created");}
+async function inAuth(id,iid){await api("/api/intents/"+iid+"/authorize","POST");WIN[id].load();}
+async function inCancel(id,iid){await api("/api/intents/"+iid,"DELETE");WIN[id].load();}
+
+/* login switcher + forgot */
+async function loadSwitcher(){try{const j=await api("/api/os/userlist");const el=document.getElementById("uswitch");if(!el)return;
+  el.innerHTML=j.users.map(u=>`<button type="button" class="chip" onclick="document.getElementById('u').value='${u.user}';document.getElementById('p').focus()">${ic('users')} ${u.user}</button>`).join("");}catch(e){}}
+async function forgotPw(){const u=document.getElementById("u").value.trim()||await dialog("Forgot password","Username to reset:",{input:"admin",ok:"Reset"});if(!u)return;
+  try{const r=await api("/api/os/forgot","POST",{user:u});await dialog("Password reset",`A temporary password has been set for "${u}".\nTemporary password: ${r.temp}\n\nSign in and change it in Settings → Account.`,{ok:"OK"});document.getElementById("p").value=r.temp;}catch(e){toast(e);}}
+
+/* Mail app */
+APP_RENDER.mail=async(wb,o)=>{const m=await api("/api/mail/config").catch(()=>({}));
+  wb.innerHTML=`<div class="pad"><h3>Mail</h3><div class="sub2">${m.configured?'SMTP configured ('+esc(m.from||m.user||'')+').':'Not configured — set SMTP in Settings → Mail to send.'}</div>
+   <div class="inp" style="margin-bottom:10px"><label>To</label><input id="mto${o.id}" placeholder="name@example.com"></div>
+   <div class="inp" style="margin-bottom:10px"><label>Subject</label><input id="msub${o.id}" placeholder="Subject"></div>
+   <div class="inp" style="margin-bottom:12px"><label>Message</label><textarea id="mbody${o.id}" style="min-height:160px;padding:10px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);color:var(--text);outline:none;resize:vertical;font-family:inherit"></textarea></div>
+   <button class="mini" onclick="mailSend(${o.id})">Send</button> <button class="chip" onclick="app('settings','mail')">Mail settings</button> <span id="mstat${o.id}" class="sub2" style="margin-left:8px"></span></div>`;};
+async function mailSend(id){const to=$("#mto"+id).value.trim(),sub=$("#msub"+id).value.trim()||"(no subject)",body=$("#mbody"+id).value;
+  const st=$("#mstat"+id);st.textContent="Sending…";try{await api("/api/mail/send","POST",{to,subject:sub,body});st.innerHTML='<span class="tag t-ok">sent</span>';notify("Mail sent","to "+to);}catch(e){st.innerHTML='<span class="tag t-bad">'+esc(e)+'</span>';}}
+
+/* Writer (office-lite, saves real files) */
+APP_RENDER.writer=(wb,o,arg)=>{o.path=null;
+  wb.innerHTML=`<div class="edwrap"><div class="edbar"><button class="mini ghost" onclick="wrOpen(${o.id})">Open</button><button class="mini" onclick="wrSave(${o.id})">Save</button>
+   <span style="width:1px;height:20px;background:var(--line)"></span>
+   <button class="wbtn" title="Bold" onclick="document.execCommand('bold')"><b>B</b></button><button class="wbtn" title="Italic" onclick="document.execCommand('italic')"><i>I</i></button><button class="wbtn" title="Underline" onclick="document.execCommand('underline')"><u>U</u></button>
+   <button class="wbtn" title="Bullets" onclick="document.execCommand('insertUnorderedList')">•≡</button>
+   <span class="code" id="wp${o.id}" style="flex:1;text-align:right">untitled.html</span></div>
+   <div id="wa${o.id}" contenteditable="true" class="edarea" style="background:#fff;color:#20202a;overflow:auto" spellcheck="true"><h2>Untitled document</h2><p>Start writing… This is a real document — Save writes an .html file to your workspace.</p></div></div>`;
+  o.openFile=async pp=>{try{const j=await api("/api/fs/read","POST",{path:pp});o.path=j.path;$("#wa"+o.id).innerHTML=j.content;$("#wp"+o.id).textContent=j.path;}catch(e){toast(e);}};
+  if(arg)o.openFile(arg);};
+async function wrOpen(id){const pp=await dialog("Open document","Workspace path (.html):",{input:"/Documents/doc.html",ok:"Open"});if(pp)WIN[id].openFile(pp);}
+async function wrSave(id){const o=WIN[id];let pp=o.path;if(!pp){pp=await dialog("Save document","Workspace path:",{input:"/Documents/document.html",ok:"Save"});if(!pp)return;o.path=pp;$("#wp"+id).textContent=pp;}
+  try{await api("/api/fs/write","POST",{path:pp,content:$("#wa"+id).innerHTML});toast("Saved "+pp);}catch(e){toast(e);}}
+
+/* settings helpers */
+async function uCreate(){const u=$("#nu").value.trim(),pw=$("#nup").value,role=$("#nur").value;if(!u||!pw)return toast("username + password");try{await api("/api/os/users","POST",{user:u,pass:pw,role});toast("User added");app("settings","users");}catch(e){toast(e);}}
+async function uDel(u){if(!await dialog("Delete user","Delete "+u+"?",{ok:"Delete",danger:true}))return;try{await api("/api/os/users/"+u,"DELETE");app("settings","users");}catch(e){toast(e);}}
+async function uReset(u){const np=await dialog("Reset password","New password for "+u+":",{input:"fabric",ok:"Reset"});if(!np)return;try{await api("/api/os/users/"+u+"/reset","POST",{new:np});toast("Password reset");}catch(e){toast(e);}}
+async function cloudSave(){const b={name:$("#cpn").value,endpoint:$("#cpe").value,model:$("#cpm").value};const k=$("#cpk").value;if(k)b.key=k;try{await api("/api/ai/provider","POST",b);toast("Provider saved");}catch(e){toast(e);}}
+async function mailSave(){const b={host:$("#mh").value,port:+$("#mp").value,user:$("#mu").value,from:$("#mf").value};const pw=$("#mpw").value;if(pw)b.pass=pw;try{await api("/api/mail/config","POST",b);toast("Mail saved");}catch(e){toast(e);}}
+async function wifiConn(ssid){const pass=await dialog("Connect to "+ssid,"Wi-Fi password (blank if open):",{input:"",ok:"Connect"});if(pass===null)return;try{await api("/api/sys/wifi/connect","POST",{ssid,pass});toast("Connecting to "+ssid);setTimeout(()=>app("settings","wifi"),1500);}catch(e){toast(e);}}
+async function wifiDisc(ssid){try{await api("/api/sys/wifi/disconnect","POST",{ssid});toast("Disconnected");app("settings","wifi");}catch(e){toast(e);}}
+async function dtNtp(on){try{await api("/api/sys/datetime","POST",{ntp:on});toast("NTP "+(on?"on":"off"));}catch(e){toast(e);}}
+async function dtSet(){const v=$("#dtman").value;if(!v)return;const iso=v.replace("T"," ")+":00";try{await api("/api/sys/datetime","POST",{time:iso});toast("Time set");}catch(e){toast(e);}}
+async function wallUpload(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{await api("/api/wallpaper","POST",{data:r.result});SET.wallpaper="custom";applySettings();toast("Wallpaper set");app("settings","appearance");}catch(e){toast(e);}};r.readAsDataURL(f);}
+
+
+/* Software (real .desktop apps: launch; apt search+install) */
+APP_RENDER.software=async(wb,o)=>{
+  wb.innerHTML=`<div class="pad"><h3>Software</h3><div class="sub2">Installed apps launch on your desktop. Search installs real Ubuntu/Debian packages (apt, privileged).</div>
+   <div class="row"><input id="sq${o.id}" placeholder="Search packages to install (e.g. gimp, vlc, libreoffice)…" style="flex:1;min-width:220px;padding:9px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);outline:none" onkeydown="if(event.key==='Enter')swSearch(${o.id})"><button class="mini" onclick="swSearch(${o.id})">Search apt</button></div>
+   <div id="sres${o.id}"></div>
+   <h3 style="font-size:.95rem;margin-top:8px">Installed applications</h3><div class="fgrid" id="sapps${o.id}"></div></div>`;
+  try{const j=await api("/api/apps");const g=$("#sapps"+o.id);
+    g.innerHTML=j.apps.map(a=>`<div class="fitem" title="${esc(a.comment||a.name)}" onclick='swLaunch(${JSON.stringify(a.exec)})'><div class="fi" style="color:var(--accent2)">${ic("file",30)}</div><div class="fn">${esc(a.name)}</div></div>`).join("");
+  }catch(e){$("#sapps"+o.id).innerHTML=`<div class="empty">${e}</div>`;}
+};
+async function swLaunch(exec){try{const r=await api("/api/apps/launch","POST",{exec});toast("Launched "+(r.launched||"").split(" ")[0]);notify("App launched",r.launched||exec);}catch(e){toast(e);}}
+async function swSearch(id){const q=$("#sq"+id).value.trim();if(!q)return;const box=$("#sres"+id);box.innerHTML='<div class="spinner"></div> searching apt…';
+  try{const j=await api("/api/apps/search","POST",{q});if(!j.available){box.innerHTML='<div class="empty">apt not available or no results.</div>';return;}
+   box.innerHTML=`<table class="tbl"><tbody>${j.results.slice(0,20).map(r=>`<tr><td><b>${esc(r.pkg)}</b><div class="d" style="color:var(--muted);font-size:.75rem">${esc(r.desc)}</div></td><td><button class="mini ghost" onclick="swInstall('${esc(r.pkg)}',${id})">Install</button></td></tr>`).join("")}</tbody></table>`;
+  }catch(e){box.innerHTML=`<div class="empty">${e}</div>`;}}
+async function swInstall(pkg,id){if(!await dialog("Install "+pkg,"Install the package '"+pkg+"' via apt? This needs system privileges.",{ok:"Install",danger:true}))return;
+  toast("Installing "+pkg+"…");try{await api("/api/apps/install","POST",{pkg,confirm:true});toast(pkg+" installed");notify("Installed",pkg);app("software");}catch(e){dialog("Install failed",String(e),{ok:"OK"});}}
+
+/* First-run setup wizard (OOBE) */
+let SU={step:0,accent:"#f26b3a",wallpaper:"aurora",theme:"dark",pass:""};
+async function maybeSetup(){try{const st=await api("/api/os/setup-status");if(st.done){$("#login").style.display="grid";$("#u").focus();loadSwitcher();return;}}catch(e){$("#login").style.display="grid";return;}
+  document.getElementById("setup").style.display="grid";suRender();}
+function suRender(){const steps=[suWelcome,suAccount,suLook,suLang,suAI,suFinish];document.getElementById("suBody").innerHTML=steps[SU.step]();
+  document.getElementById("suDots").innerHTML=steps.map((_,i)=>`<span class="sudot ${i===SU.step?'on':''}"></span>`).join("");}
+function suNext(){if(SU.step===1){const pw=document.getElementById("supw");if(pw)SU.pass=pw.value;}SU.step++;suRender();}
+function suBack(){SU.step--;suRender();}
+function suWelcome(){return `<div class="sucenter">${'<div class="mark" style="margin:0 auto 18px">'+document.querySelector('#splash .mark').innerHTML+'</div>'}<h1 style="font-size:2rem">Welcome to Fabric OS</h1><p style="color:var(--muted);margin:8px 0 26px">Let's set up your workspace. It takes a minute.</p><button class="btn" style="max-width:220px;margin:0 auto" onclick="suNext()">Get started</button></div>`;}
+function suAccount(){return `<h2 style="margin-bottom:4px">Your account</h2><p style="color:var(--muted);margin-bottom:20px">Set a password for the admin account (default is 'fabric').</p>
+  <div class="field"><label>Username</label><input value="admin" disabled></div>
+  <div class="field"><label>New password (optional)</label><input id="supw" type="password" placeholder="leave blank to keep 'fabric'"></div>
+  <div class="subtn"><button class="mini ghost" onclick="suBack()">Back</button><button class="mini" onclick="suNext()">Continue</button></div>`;}
+function suLook(){const acc=["#f26b3a","#8a5cf6","#3fcb7e","#3b82f6","#e0457b","#e0a64b"];const wps=["aurora","ember","forest","ocean","rose","mono"];
+  return `<h2 style="margin-bottom:4px">Make it yours</h2><p style="color:var(--muted);margin-bottom:18px">Pick a theme, accent and wallpaper.</p>
+  <div class="setrow"><div class="lbl">Theme</div><div class="chips"><button class="chip" onclick="SU.theme='dark';suRender()">Dark</button><button class="chip" onclick="SU.theme='light';suRender()">Light</button> <span class="tag t-mut">${SU.theme}</span></div></div>
+  <div class="setrow"><div class="lbl">Accent</div><div style="display:flex;gap:8px">${acc.map(c=>`<div class="swatch ${SU.accent===c?'on':''}" style="background:${c}" onclick="SU.accent='${c}';suRender()"></div>`).join("")}</div></div>
+  <div class="setrow"><div class="lbl">Wallpaper</div><div style="display:flex;gap:8px;flex-wrap:wrap">${wps.map(w=>`<div class="wp wp-${w} ${SU.wallpaper===w?'on':''}" onclick="SU.wallpaper='${w}';suRender()"></div>`).join("")}</div></div>
+  <div class="subtn"><button class="mini ghost" onclick="suBack()">Back</button><button class="mini" onclick="suNext()">Continue</button></div>`;}
+function suAI(){SU.ai=SU.ai||"local";return `<h2 style="margin-bottom:4px">AI, your way</h2><p style="color:var(--muted);margin-bottom:16px">Choose how Fabric OS uses AI. You can change this anytime in Settings.</p>
+  <div class="setrow" style="cursor:pointer" onclick="SU.ai='local';suRender()"><div class="lbl">${SU.ai==='local'?'◉':'○'} Local AI <div class="d">Private, offline, on your machine</div></div><span class="tag t-ok">recommended</span></div>
+  <div class="setrow" style="cursor:pointer" onclick="SU.ai='cloud';suRender()"><div class="lbl">${SU.ai==='cloud'?'◉':'○'} Cloud AI <div class="d">Use an external provider (OpenAI-compatible)</div></div></div>
+  ${SU.ai==='cloud'?`<div class="inp" style="margin:8px 0"><label>Provider name</label><input id="sucn" value="${esc(SU.cn||'OpenAI')}" oninput="SU.cn=this.value"></div><div class="inp" style="margin-bottom:8px"><label>Endpoint</label><input id="suce" value="${esc(SU.ce||'https://api.openai.com/v1/chat/completions')}" oninput="SU.ce=this.value"></div><div class="inp" style="margin-bottom:8px"><label>API key</label><input id="suck" type="password" placeholder="sk-…" oninput="SU.ck=this.value"></div>`:''}
+  <div class="subtn"><button class="mini ghost" onclick="suBack()">Back</button><button class="mini" onclick="suNext()">Continue</button></div>`;}
+function suLang(){SU.lang=SU.lang||"en";const langs=[["en","English"],["hi","हिन्दी Hindi"],["es","Español"],["fr","Français"],["de","Deutsch"],["ar","العربية"],["zh","中文"]];
+  return `<h2 style="margin-bottom:4px">Language & region</h2><p style="color:var(--muted);margin-bottom:16px">Choose your display language and check the time.</p>
+  <div class="setrow"><div class="lbl">Language</div><select onchange="SU.lang=this.value">${langs.map(l=>`<option value="${l[0]}" ${SU.lang===l[0]?'selected':''}>${l[1]}</option>`).join("")}</select></div>
+  <div class="setrow"><div class="lbl">Time zone</div><span class="code">${Intl.DateTimeFormat().resolvedOptions().timeZone}</span></div>
+  <div class="setrow"><div class="lbl">Current time</div><b id="sudt">${new Date().toLocaleString()}</b></div>
+  <div class="subtn"><button class="mini ghost" onclick="suBack()">Back</button><button class="mini" onclick="suNext()">Continue</button></div>`;}
+function suFinish(){return `<div class="sucenter"><div class="mark" style="margin:0 auto 18px">${document.querySelector('#splash .mark').innerHTML}</div><h1 style="font-size:1.8rem">You're all set</h1><p style="color:var(--muted);margin:8px 0 26px">Enjoy Fabric OS.</p><button class="btn" style="max-width:220px;margin:0 auto" id="suDone" onclick="suComplete()">Finish setup</button></div>`;}
+async function suComplete(){const b=document.getElementById("suDone");if(b){b.textContent="Setting up…";b.disabled=true;}
+  try{const j=await api("/api/login","POST",{username:"admin",password:"fabric"});TOKEN=j.token;
+    if(SU.pass){await api("/api/account/password","POST",{old:"fabric",new:SU.pass}).catch(()=>{});}
+    const patch={accent:SU.accent,wallpaper:SU.wallpaper,theme:SU.theme,language:SU.lang||"en",setup_done:true};
+    if(SU.ai==='cloud'){patch.privacy="allow_cloud";await api("/api/ai/provider","POST",{name:SU.cn||"OpenAI",endpoint:SU.ce||"https://api.openai.com/v1/chat/completions",model:"gpt-4o-mini",key:SU.ck||""}).catch(()=>{});}
+    await api("/api/settings","PUT",patch);
+    document.getElementById("setup").style.display="none";await enterDesktop();
+  }catch(e){toast(e);if(b){b.textContent="Finish setup";b.disabled=false;}}}
+
+
+async function checkUpdates(){const info=document.getElementById("upinfo"),list=document.getElementById("uplist");if(!info)return;info.textContent="Checking…";list.innerHTML="";
+  try{const j=await api("/api/sys/updates");document.getElementById("ab_pm").textContent=j.mgr;
+    if(!j.count){info.textContent="Your system is up to date ✓";return;}
+    info.textContent=j.count+" update(s) available";
+    list.innerHTML=`<div class="setrow"><div class="lbl">${j.updates.slice(0,8).map(u=>esc(u.pkg)).join(", ")}${j.count>8?" +"+(j.count-8)+" more":""}</div><button class="mini" onclick="applyUpdates()">Update all</button></div>`;
+  }catch(e){info.textContent=String(e);}}
+async function applyUpdates(){if(!await dialog("Install updates","Download and install all available updates? Needs system privileges.",{ok:"Update",danger:true}))return;toast("Updating…");try{await api("/api/sys/updates/apply","POST",{confirm:true});toast("Updated");checkUpdates();}catch(e){dialog("Update failed",String(e),{ok:"OK"});}}
+async function sendFeedback(){const t=$("#fbT").value,sub=$("#fbSub").value||t,msg=$("#fbM").value;if(!msg.trim())return toast("Write a message");const st=$("#fbS");st.textContent="Sending…";
+  try{const r=await api("/api/feedback","POST",{type:t,subject:sub,message:msg});st.innerHTML=r.sent?'<span class="tag t-ok">sent to Patience AI</span>':'<span class="tag t-warn">'+esc(r.note||"saved")+'</span>';$("#fbM").value="";}catch(e){st.innerHTML='<span class="tag t-bad">'+esc(e)+'</span>';}}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[package]
+name = "libcredentials"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Secure credential storage abstraction; systemd-creds backend, redaction"
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"

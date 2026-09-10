@@ -1,0 +1,14 @@
+[package]
+name = "libresource"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "AI resource fabric: CPU/GPU/NPU/RAM accounting and agent budgets"
+
+[dependencies]
+libagent = { path = "../libagent" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"

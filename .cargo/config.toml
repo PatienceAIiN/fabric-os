@@ -1,0 +1,7 @@
+# Bound parallelism so a build never saturates a 7 GB / 12-thread laptop.
+# tools/rg additionally caps RAM/CPU at the cgroup level.
+[build]
+jobs = 4
+
+[net]
+retry = 3

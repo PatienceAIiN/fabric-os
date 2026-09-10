@@ -1,0 +1,309 @@
+PATIENCE AI
+
+Fabric OS
+A public guide to a Linux-compatible foundation for AI-assisted
+work.
+
+Intent
+
+Boundaries
+
+Outcome
+
+what you want
+
+what is allowed
+
+what remains
+
+PUBLIC RELEASE GUIDE
+Product basics, device validation, security, privacy, and open-source use.
+
+Version 0.1.0 | 10 September 2026
+Prepared for evaluation and early device testing. This guide intentionally stays at the public product level.
+
+Fabric OS | Patience AI | Public guidebook
+
+1
+
+01 / PRODUCT
+
+A calmer operating system
+Fabric OS is a Linux-compatible, local-first foundation for intelligent work. It is built around a simple idea: AI can
+help, while people keep the final say.
+
+The public promise
+The product is designed to keep intent clear, access limited, and important work understandable. It is an early
+research release, not a claim of universal hardware support or production certification.
+
+AI helps. People decide.
+
+Intent
+
+Boundaries
+
+Outcome
+
+what you want
+
+what is allowed
+
+what remains
+
+What makes it different
+Traditional software
+
+Fabric OS public model
+
+Actions can be opaque
+
+Intent and outcome stay visible
+
+Permissions are often broad
+
+Access is meant to be limited
+
+Failures can be hard to unwind
+
+Important work is designed for review and recovery
+
+Fabric OS | Patience AI | Public guidebook
+
+2
+
+02 / HOW IT WORKS
+
+Simple on the surface
+The public flow is intentionally easy to explain. It does not describe private services, proprietary rules, or
+implementation details.
+Step
+
+Public experience
+
+What it means
+
+01
+
+Say what you need
+
+Start with a goal in your own words.
+
+02
+
+See the next step
+
+Fabric OS presents a clear, bounded suggestion.
+
+03
+
+Stay in control
+
+You can accept, change, or stop before important work begins.
+
+04
+
+Keep the result
+
+Important changes remain reviewable and recoverable.
+
+PUBLIC BOUNDARY
+The guide explains the experience, not private implementation or business logic.
+
+Fabric OS | Patience AI | Public guidebook
+
+3
+
+03 / LINUX FOUNDATION
+
+Built for real machines
+Fabric OS follows upstream Linux wherever practical and keeps the base system useful without cloud AI. The first
+target is x86_64 with UEFI and a GNU/Linux-compatible userspace.
+Area
+
+Public release position
+
+Architecture
+
+x86_64 initial target; additional architectures require separate validation.
+
+Boot
+
+UEFI device testing is required before claiming hardware support.
+
+Userspace
+
+GNU/Linux-compatible userspace with system services and a familiar shell.
+
+AI
+
+Local-first; cloud providers are optional and must be user-controlled.
+
+Storage
+
+ext4 research image for the current early build; installer and recovery status must be stated per release.
+
+Device validation
+Use a spare machine or a separately replaceable test disk. Record the exact model, firmware, CPU, memory,
+graphics, storage, network, audio, sleep, and recovery results. Do not install an early research image on your only
+computer.
+See the public device guide at /device and the repository validation record before testing.
+
+Fabric OS | Patience AI | Public guidebook
+
+4
+
+04 / SECURITY AND PRIVACY
+
+Useful, with clear limits
+Fabric OS treats AI output as untrusted and keeps authority separate from suggestions. The public security
+posture is about boundaries, not about asking people to trust a model.
+Principle
+
+Public meaning
+
+Fail closed
+
+When a sensitive decision is unclear, access should stop.
+
+Least privilege
+
+A task should receive only the access it needs.
+
+Local-first
+
+Private work should be able to stay on the device.
+
+Credential protection
+
+Provider keys belong in secure storage, not ordinary settings or logs.
+
+Recovery
+
+Important changes should be reviewable and, where possible, reversible.
+
+Privacy basics
+The website uses necessary preference storage and optional analytics only after a visitor chooses it. The OS must
+apply the same public principles: clear notice, purpose-specific choices, easy withdrawal, minimal collection,
+retention limits, and a clear local/cloud indicator.
+
+LEGAL STATUS
+This guide is not a GDPR or DPDP certification and requires jurisdiction-specific review.
+
+Fabric OS | Patience AI | Public guidebook
+
+5
+
+05 / OPEN SOURCE AND LICENSES
+
+Use it responsibly
+Fabric OS project code is intended to be distributed under the Apache License 2.0 unless a file or dependency
+says otherwise. Keep the license and notices with redistributed portions.
+
+What the project license covers
+The project license governs project code and documentation where the repository states that license. It does not
+automatically relicense the Linux kernel, firmware, model weights, datasets, fonts, icons, or third-party packages.
+Asset type
+
+Required release treatment
+
+Fabric OS code
+
+Apache License 2.0 notice and conditions.
+
+Rust and Node dependencies
+
+Keep each dependency's own license and attribution; archive a complete SBOM.
+
+Linux and system components
+
+Follow each upstream component's license and source/notice requirements.
+
+Firmware and drivers
+
+Record source, version, redistribution terms, and device limitations.
+
+Models and datasets
+
+Record exact version/hash, source, license, use restrictions, and provenance.
+
+Fonts, icons, and media
+
+Record origin and permission; do not assume the project license covers them.
+
+Release rule
+If the terms or provenance are unclear, keep the asset out of the release until reviewed.
+
+Fabric OS | Patience AI | Public guidebook
+
+6
+
+06 / RELEASE AND SUPPORT
+
+Evidence before confidence
+A launch candidate is more than a website and an image. Each release needs a named owner, a reproducible
+record, and evidence for the exact artifacts and devices being supported.
+Gate
+
+Evidence
+
+Source
+
+Reviewed tag, lockfiles, tests, and clean release record.
+
+Artifacts
+
+SHA-256 manifest, signatures, provenance, and SBOM.
+
+Device
+
+Exact hardware matrix, install results, recovery path, and known limitations.
+
+Security
+
+Threat tests, credential-redaction checks, incident process, and external review.
+
+Privacy
+
+Data map, retention, vendors, consent, rights process, and transfer review.
+
+Support
+
+Contact, vulnerability reporting, release notes, and end-of-life policy.
+
+Support contact
+Patience AI: info@patienceai.in
+The contact and legal entity details must be finalized before production launch.
+
+CURRENT STATUS
+Fabric OS remains an early research release; do not use it as the sole system for safety-critical work.
+
+Fabric OS | Patience AI | Public guidebook
+
+7
+
+07 / LEGAL AND PUBLICATION NOTES
+
+Read this before publishing
+This guide is a public product document. It is intentionally concise about the system experience and does not
+disclose private business logic, internal endpoints, secrets, threat-response details, or unpublished
+implementation.
+
+Required before launch
+Complete the legal entity, registered address, launch countries, governing law, DPO or privacy contact decision,
+processor agreements, retention schedule, transfer safeguards, EULA, export review, accessibility review, signed
+release process, and independent security review.
+
+No document can make a product legally compliant
+by itself. Compliance depends on the actual
+organization, processing, vendors, markets,
+operations, and evidence.
+
+References in the repository
+LICENSE | SECURITY.md | docs/compliance/ | docs/release/ | website/THIRD-PARTY-NOTICES.md
+Website: patienceai.in | Product: Fabric OS | Copyright 2026 Patience AI. All copyright reserved.
+
+Fabric OS | Patience AI | Public guidebook
+
+8
+
+

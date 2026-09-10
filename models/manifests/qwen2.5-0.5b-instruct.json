@@ -1,0 +1,15 @@
+{
+  "model_id": "local/qwen2.5-0.5b-instruct",
+  "version": "q4_k_m",
+  "architecture": "qwen2",
+  "quantization": "Q4_K_M",
+  "size_bytes": 491400032,
+  "context_length": 32768,
+  "capabilities": ["chat", "reasoning"],
+  "required_memory": 800000000,
+  "supported_accelerators": ["cpu"],
+  "license": "apache-2.0",
+  "checksum_sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "source": "huggingface:Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+  "trust_status": "Verified"
+}

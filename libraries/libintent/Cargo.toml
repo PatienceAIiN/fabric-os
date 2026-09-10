@@ -1,0 +1,16 @@
+[package]
+name = "libintent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Intent model, lifecycle state machine, and intent-scoped capabilities"
+
+[dependencies]
+libcapability = { path = "../libcapability" }
+libcrypto = { path = "../libcrypto" }
+libagent = { path = "../libagent" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints.rust]
+unsafe_code = "forbid"
