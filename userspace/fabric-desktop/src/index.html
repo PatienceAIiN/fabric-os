@@ -275,6 +275,8 @@ const ICONS={
  power:'<path d="M12 4v8"/><path d="M7 7a7 7 0 1 0 10 0"/>',
  wallpaper:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M4 17l5-4 4 3 3-2 4 3"/>',
  search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
+ bluetooth:'<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
+ lan:'<rect x="3" y="4" width="8" height="6" rx="1"/><rect x="13" y="14" width="8" height="6" rx="1"/><path d="M7 10v3h10v1M17 14v-1"/>',
  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
  file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
  image:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M4 17l5-4 4 3 3-2 4 3"/>',
@@ -614,12 +616,12 @@ function parseIntent(q){const s=q.toLowerCase();
 /* Settings */
 APP_RENDER.settings=(wb,o,tab)=>{o.tab=tab||"appearance";
   wb.innerHTML=`<div class="setwrap"><div class="setnav" id="sn${o.id}"></div><div class="setbody" id="sb${o.id}"></div></div>`;
-  const S_ICON={appearance:"wallpaper",account:"users",ai:"assistant",cloud:"network",mail:"mail",network:"network",wifi:"network",storage:"storage",users:"users",display:"display",datetime:"datetime",power:"power",about:"sysinfo"};
-  const S_ORDER=["appearance","account","ai","cloud","mail","wifi","network","storage","users","display","datetime","power","about"];
-  const secs=[["appearance","Appearance"],["account","Account"],["ai","AI & Models"],["cloud","Cloud AI"],["mail","Mail"],["wifi","Wi-Fi"],["network","Network"],["storage","Storage"],["users","Users"],["display","Displays"],["datetime","Date & Time"],["power","Power & Battery"],["about","About"]];
+  const S_ICON={appearance:"wallpaper",account:"users",ai:"assistant",cloud:"network",mail:"mail",network:"network",wifi:"network",bluetooth:"bluetooth",lan:"lan",storage:"storage",users:"users",display:"display",datetime:"datetime",power:"power",about:"sysinfo"};
+  const S_ORDER=["appearance","account","ai","cloud","mail","wifi","bluetooth","network","lan","storage","users","display","datetime","power","about"];
+  const secs=[["appearance","Appearance"],["account","Account"],["ai","AI & Models"],["cloud","Cloud AI"],["mail","Mail"],["wifi","Wi-Fi"],["bluetooth","Bluetooth"],["network","Network"],["lan","Nearby (LAN)"],["storage","Storage"],["users","Users"],["display","Displays"],["datetime","Date & Time"],["power","Power & Battery"],["about","About"]];
   $("#sn"+o.id).innerHTML=secs.map(([id,n])=>`<button class="${id===o.tab?'on':''}" onclick="setTab(${o.id},'${id}')">${ic(S_ICON[id])} ${n}</button>`).join("");
   o.onarg=t=>setTab(o.id,t);setTab(o.id,o.tab);};
-const S_ORD=["appearance","account","ai","cloud","mail","wifi","network","storage","users","display","datetime","power","about"];
+const S_ORD=["appearance","account","ai","cloud","mail","wifi","bluetooth","network","lan","storage","users","display","datetime","power","about"];
 function setTab(id,tab){const o=WIN[id];o.tab=tab;const bs=Array.from($("#sn"+id).children);bs.forEach(b=>b.classList.remove("on"));const i=S_ORD.indexOf(tab);if(bs[i])bs[i].classList.add("on");SETPAGE[tab]($("#sb"+id),id);}
 const SETPAGE={
  appearance:(b)=>{const accents=["#f26b3a","#8a5cf6","#3fcb7e","#3b82f6","#e0457b","#e0a64b"];const wps=["aurora","ember","forest","ocean","rose","mono"];
@@ -684,6 +686,19 @@ const SETPAGE={
  wifi:async(b)=>{b.innerHTML='<div class="pad"><div class="spinner"></div> scanning…</div>';try{const j=await api("/api/sys/wifi");if(!j.available){b.innerHTML='<h3>Wi-Fi</h3><div class="empty">NetworkManager (nmcli) not available here.</div>';return;}
    b.innerHTML=`<h3>Wi-Fi</h3><div class="sub2">Real networks via nmcli. Connect/disconnect uses NetworkManager (privileged).</div><div id="wl"></div>`;
    const wl=document.getElementById("wl");wl.innerHTML=j.networks.sort((a,c)=>c.signal-a.signal).map(n=>`<div class="setrow"><div class="lbl">${n.active?'● ':''}${esc(n.ssid)}<div class="d">${esc(n.security||'open')} · ${n.signal}%</div></div>${n.active?`<button class="chip" onclick="wifiDisc('${esc(n.ssid)}')">Disconnect</button>`:`<button class="chip" onclick="wifiConn('${esc(n.ssid)}')">Connect</button>`}</div>`).join("");
+  }catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
+ bluetooth:async(b)=>{b.innerHTML='<div class="pad"><div class="spinner"></div></div>';try{const st=await api("/api/sys/bluetooth");
+   if(!st.available){b.innerHTML='<h3>Bluetooth</h3><div class="empty">No Bluetooth adapter / bluetoothctl not available.</div>';return;}
+   b.innerHTML=`<h3>Bluetooth</h3><div class="sub2">${esc(st.name||"Adapter")} — real (bluetoothctl).</div>
+    <div class="setrow"><div class="lbl">Bluetooth<div class="d">${st.blocked?"blocked by rfkill":(st.powered?"on":"off")}</div></div><div class="togg ${st.powered?'on':''}" onclick="btPower(${!st.powered})"></div></div>
+    <div class="row" style="margin-top:8px"><button class="mini" onclick="btScan(this)">Scan for devices</button></div>
+    <div id="btlist"><div class="spinner"></div></div>`;
+   btLoad();
+  }catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
+ lan:async(b)=>{b.innerHTML='<div class="pad"><div class="spinner"></div> scanning LAN…</div>';try{const j=await api("/api/lan/peers");
+   b.innerHTML=`<h3>Nearby devices (LAN)</h3><div class="sub2">Real devices on your network (${esc(j.self.host)} — ${esc((j.self.addrs||[]).join(", "))}). Message other Fabric OS machines.</div>
+    ${j.peers.length?`<table class="tbl"><thead><tr><th>IP</th><th>MAC</th><th>State</th><th></th></tr></thead><tbody>${j.peers.map(pp=>`<tr><td class="code">${esc(pp.ip)}</td><td class="code">${esc(pp.mac)}</td><td><span class="tag ${pp.state==='REACHABLE'?'t-ok':'t-mut'}">${esc(pp.state)}</span></td><td><span class="link" onclick="lanSend('${esc(pp.ip)}')">Message</span></td></tr>`).join("")}</tbody></table>`:'<div class="empty">No neighbors seen yet. Ping devices or connect to the same Wi-Fi.</div>'}
+    <div class="sub2" style="margin-top:10px">To communicate, the other machine must run Fabric OS. Messages arrive as notifications.</div>`;
   }catch(e){b.innerHTML=`<div class="empty">${e}</div>`;}},
  about:(b)=>{b.innerHTML=`
    <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><div class="mark" style="width:52px;height:52px;border-radius:14px">${LOGOSVG}</div><div><h3 style="margin:0">Fabric OS</h3><div class="sub2" style="margin:0">by Patience AI</div></div></div>
@@ -968,6 +983,16 @@ async function mailTask(id,q,to){const ans=$("#ans"+id),h=$("#aih"+id);
      <div class="sub2" style="margin-top:10px">To actually send email, set up SMTP once in <span class="link" onclick="app('settings','mail')">Settings → Mail</span> (host, port, username, from address, app password). Then ask again and it will deliver to <b>${esc(to)}</b>.</div>
      <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent2)">Draft message</summary><pre class="code" style="white-space:pre-wrap">${esc(body)}</pre></details>`;
   }}
+
+
+async function btLoad(){const el=document.getElementById("btlist");if(!el)return;try{const j=await api("/api/sys/bluetooth/devices");
+  el.innerHTML=j.devices.length?`<table class="tbl"><tbody>${j.devices.map(d=>`<tr><td>${ic("bluetooth")} ${esc(d.name)}<div class="d code" style="color:var(--muted)">${esc(d.mac)}</div></td><td><button class="chip" onclick="btAct('connect','${esc(d.mac)}')">Connect</button> <button class="chip" onclick="btAct('disconnect','${esc(d.mac)}')">Disconnect</button></td></tr>`).join("")}</tbody></table>`:'<div class="empty">No paired devices. Scan to discover.</div>';}catch(e){el.innerHTML=`<div class="empty">${e}</div>`;}}
+async function btScan(btn){if(btn){btn.textContent="Scanning…";btn.disabled=true;}try{const j=await api("/api/sys/bluetooth/scan","POST",{});const el=document.getElementById("btlist");
+  el.innerHTML=j.devices.length?`<table class="tbl"><tbody>${j.devices.map(d=>`<tr><td>${ic("bluetooth")} ${esc(d.name)}<div class="d code" style="color:var(--muted)">${esc(d.mac)}</div></td><td><button class="chip" onclick="btAct('pair','${esc(d.mac)}')">Pair</button> <button class="chip" onclick="btAct('connect','${esc(d.mac)}')">Connect</button></td></tr>`).join("")}</tbody></table>`:'<div class="empty">No devices found. Make sure the device is discoverable.</div>';}catch(e){toast(e);}if(btn){btn.textContent="Scan for devices";btn.disabled=false;}}
+async function btPower(on){try{await api("/api/sys/bluetooth/power","POST",{on});toast("Bluetooth "+(on?"on":"off"));setTimeout(()=>app("settings","bluetooth"),400);}catch(e){toast(e);}}
+async function btAct(action,mac){toast(action+"…");try{await api("/api/sys/bluetooth/action","POST",{action,mac});toast(action+" ok");btLoad();}catch(e){dialog("Bluetooth "+action,String(e),{ok:"OK"});}}
+async function lanSend(ip){const msg=await dialog("Message "+ip,"Send a message to this device (must run Fabric OS):",{input:"Hello from "+((SET&&SET._me)||"admin"),ok:"Send"});if(!msg)return;
+  try{await api("/api/lan/send","POST",{ip,from:(SET&&SET._me)||"admin",msg});toast("Sent to "+ip);}catch(e){dialog("Not delivered",String(e),{ok:"OK"});}}
 
 </script>
 </body>

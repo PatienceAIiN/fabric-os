@@ -414,6 +414,13 @@ fn sys_route(req: &Req) -> Option<(String, Value)> {
         }
         ("GET", "/api/sys/displays") => Some(("200 OK".into(), sys::displays())),
         ("GET", "/api/sys/wifi") => Some(("200 OK".into(), sys::wifi_list())),
+        ("GET", "/api/sys/bluetooth") => Some(("200 OK".into(), sys::bt_status())),
+        ("GET", "/api/sys/bluetooth/devices") => Some(("200 OK".into(), sys::bt_devices())),
+        ("POST", "/api/sys/bluetooth/scan") => Some(("200 OK".into(), sys::bt_scan())),
+        ("POST", "/api/sys/bluetooth/power") => { let v = bodyv(req); ok(sys::bt_power(v["on"].as_bool().unwrap_or(true))) }
+        ("POST", "/api/sys/bluetooth/action") => { let v = bodyv(req); ok(sys::bt_action(sv(&v,"action"), sv(&v,"mac"))) }
+        ("GET", "/api/lan/peers") => Some(("200 OK".into(), sys::lan_peers())),
+        ("POST", "/api/lan/send") => { let v = bodyv(req); ok(sys::lan_send(sv(&v,"ip"), sv(&v,"from"), sv(&v,"msg"))) }
         ("POST", "/api/sys/wifi/connect") => {
             let v = bodyv(req);
             ok(sys::wifi_connect(sv(&v, "ssid"), sv(&v, "pass")))
@@ -464,6 +471,16 @@ fn handle(state: &Arc<Mutex<AppState>>, req: &Req) -> (String, Value) {
             "200 OK".into(),
             json!({ "done": s.settings.get("setup_done").and_then(|v| v.as_bool()).unwrap_or(false) }),
         );
+    }
+    if req.method == "POST" && req.path == "/api/lan/message" {
+        let v: Value = serde_json::from_str(&req.body).unwrap_or(json!({}));
+        let from = v["from"].as_str().unwrap_or("a LAN peer").to_string();
+        let msg = v["msg"].as_str().unwrap_or("").to_string();
+        let mut s = state.lock().unwrap();
+        let n = json!({ "id": rand_hex(6), "title": format!("Message from {from}"), "body": msg, "ts": now(), "read": false });
+        if let Some(a) = s.store["notifications"].as_array_mut() { a.insert(0, n); a.truncate(100); }
+        s.save_store();
+        return ("200 OK".into(), json!({ "ok": true }));
     }
     if req.method == "GET" && req.path == "/api/os/userlist" {
         let s = state.lock().unwrap();

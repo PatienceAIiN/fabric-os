@@ -1348,3 +1348,106 @@ pub fn agent_run(goal: &str, autonomous: bool) -> Value {
     json!({ "steps": steps, "done": done, "skipped": skipped, "failed": failed, "total": plan.len(),
         "message": format!("Task complete: {done} done, {skipped} awaiting approval, {failed} failed") })
 }
+
+// ---------------- Bluetooth (real via bluetoothctl / rfkill) ----------------
+pub fn bt_available() -> bool {
+    Path::new("/usr/bin/bluetoothctl").exists() && Path::new("/sys/class/bluetooth").exists()
+}
+pub fn bt_status() -> Value {
+    if !bt_available() {
+        return json!({ "available": false });
+    }
+    let show = Command::new("bluetoothctl").arg("show").output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+    let powered = show.lines().any(|l| l.trim_start().starts_with("Powered: yes"));
+    let name = show.lines().find(|l| l.trim_start().starts_with("Name:"))
+        .and_then(|l| l.split_once(':')).map(|(_, v)| v.trim().to_string()).unwrap_or_default();
+    let blocked = Command::new("rfkill").args(["list", "bluetooth"]).output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).contains("Soft blocked: yes")).unwrap_or(false);
+    json!({ "available": true, "powered": powered, "name": name, "blocked": blocked })
+}
+fn bt_parse_devices(text: &str) -> Vec<Value> {
+    text.lines().filter_map(|l| {
+        let l = l.trim();
+        let rest = l.strip_prefix("Device ")?;
+        let (mac, name) = rest.split_once(' ')?;
+        Some(json!({ "mac": mac, "name": name }))
+    }).collect()
+}
+pub fn bt_devices() -> Value {
+    let paired = Command::new("bluetoothctl").arg("devices").output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+    json!({ "devices": bt_parse_devices(&paired) })
+}
+pub fn bt_scan() -> Value {
+    // power on + timed scan, then list what was discovered
+    let _ = Command::new("bluetoothctl").args(["power", "on"]).output();
+    let _ = Command::new("bluetoothctl").args(["--timeout", "6", "scan", "on"]).output();
+    let out = Command::new("bluetoothctl").arg("devices").output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+    json!({ "devices": bt_parse_devices(&out) })
+}
+pub fn bt_power(on: bool) -> Result<Value, String> {
+    let out = Command::new("bluetoothctl").args(["power", if on { "on" } else { "off" }])
+        .output().map_err(|e| e.to_string())?;
+    if out.status.success() { Ok(json!({ "ok": true, "powered": on })) }
+    else { Err(String::from_utf8_lossy(&out.stderr).trim().to_string()) }
+}
+pub fn bt_action(action: &str, mac: &str) -> Result<Value, String> {
+    if !mac.chars().all(|c| c.is_ascii_hexdigit() || c == ':') || mac.len() != 17 {
+        return Err("invalid device address".into());
+    }
+    let verb = match action { "connect" => "connect", "disconnect" => "disconnect",
+        "pair" => "pair", "remove" => "remove", "trust" => "trust", _ => return Err("bad action".into()) };
+    let out = Command::new("bluetoothctl").args([verb, mac]).output().map_err(|e| e.to_string())?;
+    let s = String::from_utf8_lossy(&out.stdout);
+    if s.contains("successful") || s.contains("Connected: yes") || out.status.success() {
+        Ok(json!({ "ok": true, "action": verb }))
+    } else {
+        Err(format!("{verb} failed: {}", s.lines().last().unwrap_or("").trim()))
+    }
+}
+
+// ---------------- LAN peers + messaging (real) ----------------
+pub fn lan_peers() -> Value {
+    let out = Command::new("ip").args(["neigh", "show"]).output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+    let mut peers = Vec::new();
+    for l in out.lines() {
+        let c: Vec<&str> = l.split_whitespace().collect();
+        // IPv4 only, with a hardware addr, reachable/stale/delay
+        if c.is_empty() || c[0].contains(':') { continue; }
+        let ip = c[0];
+        let dev = c.iter().position(|x| *x == "dev").and_then(|i| c.get(i + 1)).copied().unwrap_or("");
+        let mac = c.iter().position(|x| *x == "lladdr").and_then(|i| c.get(i + 1)).copied().unwrap_or("");
+        let state = c.last().copied().unwrap_or("");
+        if mac.is_empty() { continue; }
+        peers.push(json!({ "ip": ip, "mac": mac, "dev": dev, "state": state }));
+    }
+    // local addresses
+    let mine: Vec<String> = Command::new("hostname").arg("-I").output().ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).split_whitespace().filter(|s| !s.contains(':')).map(String::from).collect())
+        .unwrap_or_default();
+    let host = std::fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or_default().trim().to_string();
+    json!({ "peers": peers, "self": { "host": host, "addrs": mine } })
+}
+/// Send a message to another Fabric OS host on the LAN (POST to its API).
+pub fn lan_send(ip: &str, from: &str, msg: &str) -> Result<Value, String> {
+    if !ip.chars().all(|c| c.is_ascii_digit() || c == '.') {
+        return Err("invalid IP".into());
+    }
+    let body = json!({ "from": from, "msg": msg }).to_string();
+    use std::io::Write as _;
+    let url = format!("http://{ip}:8787/api/lan/message");
+    let mut child = Command::new("curl")
+        .args(["-sS", "--max-time", "6", "-X", "POST", &url, "-H", "content-type: application/json", "--data-binary", "@-"])
+        .stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped())
+        .spawn().map_err(|e| e.to_string())?;
+    child.stdin.take().unwrap().write_all(body.as_bytes()).map_err(|e| e.to_string())?;
+    let out = child.wait_with_output().map_err(|e| e.to_string())?;
+    if out.status.success() && String::from_utf8_lossy(&out.stdout).contains("ok") {
+        Ok(json!({ "ok": true, "to": ip }))
+    } else {
+        Err(format!("no Fabric OS peer at {ip}:8787 (or unreachable)"))
+    }
+}
